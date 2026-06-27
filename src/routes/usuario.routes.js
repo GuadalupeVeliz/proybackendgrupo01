@@ -1,8 +1,9 @@
 const express = require('express');
 const usuarioRoutes = express.Router();
 const usuarioController = require('../controllers/usuario.controller');
+const { verifyToken } = require('../middlewares/auth.middleware');
 
-usuarioRoutes.get('/', usuarioController.getUsuarios);
+usuarioRoutes.get('/', verifyToken, usuarioController.getUsuarios);
 usuarioRoutes.post('/', usuarioController.createUsuario);
 usuarioRoutes.get('/:id', usuarioController.getUsuario);
 usuarioRoutes.put('/:id', usuarioController.updateUsuario);
