@@ -3,8 +3,15 @@ const app = require('./src/app');
 
 const PORT = process.env.PORT || 3000;
 
+//carga del swagger
+const swaggerUi = require('swagger-ui-express');
+const swaggerFile = require('./swagger-output.json');
+
+//ruta a la documentacion de swagger
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
+
 sequelize
-    .sync({ force: true })
+    .sync({ force: false })
     .then(() => {
         console.log('Tablas de PostgreSQL Sincronizadas');
         app.listen(PORT, () => {
