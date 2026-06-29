@@ -1,108 +1,58 @@
-// src/controllers/comprobante.controller.js
+const comprobanteService = require('../services/comprobante.service');
+const PDFDocument = require('pdfkit'); 
 
-const Comprobante = require('../models/comprobante.model');
-const Reserva = require('../models/reserva.model');
-const Cliente = require('../models/cliente.model');
-const Vacante = require('../models/vacante.model');
-const PaqueteTuristico = require('../models/paqueteTuristico.model');
-const PDFDocument = require('pdfkit'); // Librería para armar el PDF
 const comprobanteCtrl = {};
 
 // ==========================================
-// RUTAS PERSONALIZADAS POR ROLES (Integrante D)
+// RUTAS PERSONALIZADAS POR ROLES 
 // ==========================================
 
-// Para el Cliente: Solo ve sus propios comprobantes
 comprobanteCtrl.obtenerMisComprobantes = async (req, res) => {
     try {
-        // req.usuario.clienteId viene del middleware de JWT del Integrante A
-        const miClienteId = req.usuario.clienteId; 
-
-        const misComprobantes = await Comprobante.findAll({
-            include: [{
-                model: Reserva,
-                as: 'reserva',
-                include: [
-                    { 
-                        model: Cliente, 
-                        as: 'cliente',
-                        where: { id: miClienteId } // Filtro estricto de seguridad
-                    },
-                    { 
-                        model: Vacante, 
-                        as: 'vacante',
-                        include: [{ model: PaqueteTuristico, as: 'paqueteTuristico' }]
-                    }
-                ]
-            }]
-        });
-
-        res.status(200).json(misComprobantes);
-    } catch (error) {
-        console.error("Error al obtener mis comprobantes:", error);
-        res.status(500).json({ msg: 'Error al obtener tu historial de comprobantes' });
-    }
-};
-
-// Para Gerente/Recepcionista: Filtran por cualquier cliente
-comprobanteCtrl.obtenerComprobantesPorCliente = async (req, res) => {
-    try {
-        const { clienteId } = req.params; 
-
-        const comprobantes = await Comprobante.findAll({
-            include: [{
-                model: Reserva,
-                as: 'reserva',
-                include: [
-                    { 
-                        model: Cliente, 
-                        as: 'cliente',
-                        where: { id: clienteId } // Filtro dinámico según la URL
-                    },
-                    { 
-                        model: Vacante, 
-                        as: 'vacante',
-                        include: [{ model: PaqueteTuristico, as: 'paquete' }]
-                    }
-                ]
-            }]
-        });
-
+        const miClienteId = req.usuario.clienteId;
+        const comprobantes = await comprobanteService.obtenerComprobantesPorClienteId(miClienteId);
         res.status(200).json(comprobantes);
     } catch (error) {
-        console.error("Error al filtrar comprobantes:", error);
-        res.status(500).json({ msg: 'Error al obtener los comprobantes del cliente' });
+        res.status(error.status || 500).json({ msg: error.message || 'Error al obtener tu historial' });
     }
 };
 
-// Endpoint de descarga de PDF
+comprobanteCtrl.obtenerComprobantesPorCliente = async (req, res) => {
+    try {
+        const { clienteId } = req.params;
+        // ¡Reutilizamos el mismo método del servicio!
+        const comprobantes = await comprobanteService.obtenerComprobantesPorClienteId(clienteId);
+        res.status(200).json(comprobantes);
+    } catch (error) {
+        res.status(error.status || 500).json({ msg: error.message || 'Error al obtener los comprobantes' });
+    }
+};
+
+comprobanteCtrl.generarComprobanteCancelacion = async (req, res) => {
+    try {
+        const { reservaId } = req.body;
+        const comprobante = await comprobanteService.procesarCancelacion(reservaId);
+        res.status(201).json({ msg: 'Cancelación procesada y comprobante generado', comprobante });
+    } catch (error) {
+        res.status(error.status || 500).json({ msg: error.message || 'Error al procesar la cancelación' });
+    }
+};
+
 comprobanteCtrl.descargarComprobantePDF = async (req, res) => {
     try {
         const { id } = req.params;
-        const comprobante = await Comprobante.findByPk(id, {
-            include: [{
-                model: Reserva,
-                as: 'reserva',
-                include: [
-                    { model: Cliente, as: 'cliente' },
-                    { model: Vacante, as: 'vacante', include: [{ model: PaqueteTuristico, as: 'paquete' }] }
-                ]
-            }]
-        });
+        
+        // 1. Pedimos los datos puros al servicio
+        const comprobante = await comprobanteService.obtenerDatosComprobanteParaPDF(id);
 
-        if (!comprobante) {
-            return res.status(404).json({ msg: 'Comprobante no encontrado' });
-        }
-
-        // Configuramos la respuesta HTTP para que el navegador sepa que es un archivo PDF descargable
+        // 2. Configuramos la respuesta HTTP (Presentación)
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=comprobante_${comprobante.numero}.pdf`);
 
-        // Armamos el PDF
+        // 3. Dibujamos el PDF
         const doc = new PDFDocument();
-        doc.pipe(res); // Conectamos el documento directamente a la respuesta HTTP
+        doc.pipe(res); 
 
-        // Diseño básico del PDF
         doc.fontSize(20).text('Turismo del Norte - Comprobante', { align: 'center' });
         doc.moveDown();
         doc.fontSize(12).text(`Número de Comprobante: ${comprobante.numero}`);
@@ -112,43 +62,18 @@ comprobanteCtrl.descargarComprobantePDF = async (req, res) => {
         doc.text(`Cliente: ${comprobante.reserva.cliente.nombreCompleto}`);
         doc.text(`DNI: ${comprobante.reserva.cliente.dni}`);
         doc.moveDown();
+        
+        // El alias 'paquete' ya está corregido aquí
         doc.text(`Paquete: ${comprobante.reserva.vacante.paquete.nombre}`);
         doc.text(`Estado de Reserva: ${comprobante.reserva.estado}`);
         
-        doc.end(); // Finalizamos y enviamos el archivo
+        doc.end(); 
 
     } catch (error) {
         console.error("Error al generar PDF:", error);
-        res.status(500).json({ msg: 'Error al generar el documento PDF' });
-    }
-};
-
-// Generación de comprobante por Cancelación (Para que lo consuma el Integrante C)
-comprobanteCtrl.generarComprobanteCancelacion = async (req, res) => {
-    try {
-        const { reservaId } = req.body;
-
-         // 1. ACTUALIZAR ESTADO DE LA RESERVA
-        await Reserva.update(
-            { estado: 'cancelada' }, 
-            { where: { id: reservaId } }
-        );
-        
-        // Creamos el comprobante tipo 'cancelacion'
-        const comprobante = await Comprobante.create({
-            numero: `CAN-${Date.now()}`,
-            fechaEmision: new Date(),
-            tipo: 'cancelacion',
-            reservaId: reservaId
-        });
-        
-        res.status(201).json({ 
-            msg: 'Comprobante de cancelación generado exitosamente', 
-            comprobante 
-        });
-    } catch (error) {
-        console.error("Error al generar comprobante de cancelación:", error);
-        res.status(500).json({ msg: 'Error al generar comprobante de cancelación' });
+        if (!res.headersSent) {
+            res.status(error.status || 500).json({ msg: error.message || 'Error al generar el documento PDF' });
+        }
     }
 };
 
@@ -158,54 +83,46 @@ comprobanteCtrl.generarComprobanteCancelacion = async (req, res) => {
 
 comprobanteCtrl.getComprobantes = async (req, res) => {
     try {
-        const comprobantes = await Comprobante.findAll({
-            include: [{ model: Reserva, as: 'reserva' }]
-        });
+        const comprobantes = await comprobanteService.obtenerTodos();
         res.status(200).json(comprobantes);
     } catch (error) {
-        res.status(500).json({ msg: 'Error al obtener comprobantes' });
+        res.status(error.status || 500).json({ msg: error.message });
     }
 };
 
 comprobanteCtrl.getComprobante = async (req, res) => {
     try {
-        const { id } = req.params;
-        const comprobante = await Comprobante.findByPk(id, {
-            include: [{ model: Reserva, as: 'reserva' }]
-        });
-        if (!comprobante) return res.status(404).json({ msg: 'Comprobante no encontrado' });
+        const comprobante = await comprobanteService.obtenerPorId(req.params.id);
         res.status(200).json(comprobante);
     } catch (error) {
-        res.status(500).json({ msg: 'Error al obtener el comprobante' });
+        res.status(error.status || 500).json({ msg: error.message });
     }
 };
 
 comprobanteCtrl.createComprobante = async (req, res) => {
     try {
-        const nuevoComprobante = await Comprobante.create(req.body);
+        const nuevoComprobante = await comprobanteService.crear(req.body);
         res.status(201).json(nuevoComprobante);
     } catch (error) {
-        res.status(500).json({ msg: 'Error al crear comprobante' });
+        res.status(error.status || 500).json({ msg: error.message });
     }
 };
 
 comprobanteCtrl.updateComprobante = async (req, res) => {
     try {
-        const { id } = req.params;
-        const actualizado = await Comprobante.update(req.body, { where: { id } });
-        res.status(200).json(actualizado);
+        await comprobanteService.actualizar(req.params.id, req.body);
+        res.status(200).json({ msg: 'Comprobante actualizado exitosamente' });
     } catch (error) {
-        res.status(500).json({ msg: 'Error al actualizar comprobante' });
+        res.status(error.status || 500).json({ msg: error.message });
     }
 };
 
 comprobanteCtrl.deleteComprobante = async (req, res) => {
     try {
-        const { id } = req.params;
-        await Comprobante.destroy({ where: { id } });
-        res.status(200).json({ msg: 'Comprobante eliminado' });
+        await comprobanteService.eliminar(req.params.id);
+        res.status(200).json({ msg: 'Comprobante eliminado exitosamente' });
     } catch (error) {
-        res.status(500).json({ msg: 'Error al eliminar comprobante' });
+        res.status(error.status || 500).json({ msg: error.message });
     }
 };
 
