@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../config/database');
+const sequelize = require('../../config/database.config');
 const Reserva = require('./reserva.model');
 
 const Comprobante = sequelize.define('Comprobante', {

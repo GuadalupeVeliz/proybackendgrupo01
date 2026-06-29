@@ -62,7 +62,7 @@ comprobanteCtrl.obtenerComprobantesPorCliente = async (req, res) => {
                     { 
                         model: Vacante, 
                         as: 'vacante',
-                        include: [{ model: PaqueteTuristico, as: 'paqueteTuristico' }]
+                        include: [{ model: PaqueteTuristico, as: 'paquete' }]
                     }
                 ]
             }]
@@ -85,7 +85,7 @@ comprobanteCtrl.descargarComprobantePDF = async (req, res) => {
                 as: 'reserva',
                 include: [
                     { model: Cliente, as: 'cliente' },
-                    { model: Vacante, as: 'vacante', include: [{ model: PaqueteTuristico, as: 'paqueteTuristico' }] }
+                    { model: Vacante, as: 'vacante', include: [{ model: PaqueteTuristico, as: 'paquete' }] }
                 ]
             }]
         });
@@ -112,7 +112,7 @@ comprobanteCtrl.descargarComprobantePDF = async (req, res) => {
         doc.text(`Cliente: ${comprobante.reserva.cliente.nombreCompleto}`);
         doc.text(`DNI: ${comprobante.reserva.cliente.dni}`);
         doc.moveDown();
-        doc.text(`Paquete: ${comprobante.reserva.vacante.paqueteTuristico.nombre}`);
+        doc.text(`Paquete: ${comprobante.reserva.vacante.paquete.nombre}`);
         doc.text(`Estado de Reserva: ${comprobante.reserva.estado}`);
         
         doc.end(); // Finalizamos y enviamos el archivo
@@ -127,6 +127,12 @@ comprobanteCtrl.descargarComprobantePDF = async (req, res) => {
 comprobanteCtrl.generarComprobanteCancelacion = async (req, res) => {
     try {
         const { reservaId } = req.body;
+
+         // 1. ACTUALIZAR ESTADO DE LA RESERVA
+        await Reserva.update(
+            { estado: 'cancelada' }, 
+            { where: { id: reservaId } }
+        );
         
         // Creamos el comprobante tipo 'cancelacion'
         const comprobante = await Comprobante.create({

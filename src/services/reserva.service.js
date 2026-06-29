@@ -198,7 +198,7 @@ reservaService.traerReservasPorCliente = async (clienteId) => {
     return reservas;
 }
 
-reservaService.confirmarReserva = async (reservaId,data) => {
+reservaService.confirmarReserva = async (reservaId, data) => {
 
     const transaccion = await sequelize.transaction();
     try {
@@ -207,10 +207,10 @@ reservaService.confirmarReserva = async (reservaId,data) => {
         if (!reserva) {
             throw new Error('Reserva no encontrada');
         }
-        if(!data.montoPagado) {
+        if (!data.montoPagado) {
             throw new Error('Debe ingresar monto para confirmar');
         }
-        if(data.montoPagado<=0) {
+        if (data.montoPagado <= 0) {
             throw new Error('Monto ingresado no puede ser menor q 0');
         }
 
