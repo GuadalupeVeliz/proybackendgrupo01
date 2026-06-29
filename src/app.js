@@ -26,7 +26,7 @@ app.use('/api/v1/pagos', pagoRoutes);
 app.use('/api/v1/comprobantes', comprobanteRoutes);
 
 app.use('/api/v1/paquetes', paqueteRoutes);
-//app.use('/api/v1/vacantes', vacanteRoutes);
+app.use('/api/v1/vacantes', vacanteRoutes);
 
 
 module.exports = app;

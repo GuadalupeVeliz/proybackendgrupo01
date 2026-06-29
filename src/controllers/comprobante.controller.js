@@ -20,7 +20,6 @@ comprobanteCtrl.obtenerMisComprobantes = async (req, res) => {
 comprobanteCtrl.obtenerComprobantesPorCliente = async (req, res) => {
     try {
         const { clienteId } = req.params;
-        // ¡Reutilizamos el mismo método del servicio!
         const comprobantes = await comprobanteService.obtenerComprobantesPorClienteId(clienteId);
         res.status(200).json(comprobantes);
     } catch (error) {
@@ -63,7 +62,6 @@ comprobanteCtrl.descargarComprobantePDF = async (req, res) => {
         doc.text(`DNI: ${comprobante.reserva.cliente.dni}`);
         doc.moveDown();
         
-        // El alias 'paquete' ya está corregido aquí
         doc.text(`Paquete: ${comprobante.reserva.vacante.paquete.nombre}`);
         doc.text(`Estado de Reserva: ${comprobante.reserva.estado}`);
         

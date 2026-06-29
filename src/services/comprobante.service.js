@@ -4,7 +4,7 @@ const Cliente = require('../models/cliente.model');
 const Vacante = require('../models/vacante.model');
 const PaqueteTuristico = require('../models/paqueteTuristico.model');
 
-// Integración con el módulo de tu compañero
+// Integración con el módulo de vacante.service
 const vacanteService = require('./vacante.service'); 
 
 const comprobanteService = {};
@@ -76,8 +76,8 @@ comprobanteService.procesarCancelacion = async (reservaId) => {
     // 1. Actualizamos el estado de la reserva
     await reserva.update({ estado: 'cancelada' });
 
-    // 2. Restauramos el cupo usando el servicio de tu compañero
-    // Asumimos 1 lugar devuelto. Si tuvieras un campo de cantidad de pasajeros, iría aquí.
+    // 2. Restauramos el cupo usando el servicio de vacante.service
+    // Asumimos 1 lugar devuelto.
     await vacanteService.descontarCupo(reserva.vacanteId, 1);
 
     // 3. Generamos el comprobante

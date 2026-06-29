@@ -9,7 +9,6 @@ const conversorService = require('./conversor.service');
 
 const pagoService = {};
 
-// Función auxiliar calcada del estilo de tu compañero
 const crearError = (message, status) => {
     const error = new Error(message);
     error.status = status;

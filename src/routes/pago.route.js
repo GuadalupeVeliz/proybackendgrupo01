@@ -23,7 +23,7 @@ router.get('/', pagoCtrl.getPagos);
 // Ver el detalle de un pago específico
 router.get('/:id', pagoCtrl.getPago);
 
-// Rutas administrativas (Generalmente no se usan manualmente si el pago es automático)
+// Rutas administrativas 
 router.post('/', pagoCtrl.createPago); 
 router.put('/:id', pagoCtrl.updatePago);
 router.delete('/:id', pagoCtrl.deletePago);
