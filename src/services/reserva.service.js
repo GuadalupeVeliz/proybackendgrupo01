@@ -2,6 +2,7 @@ const sequelize = require('../../config/database.config');
 const Cliente = require('../models/cliente.model');
 const Reserva = require('../models/reserva.model');
 const Vacante = require('../models/vacante.model');
+const vacanteService = require('./vacante.service');
 
 const reservaService = {};
 
@@ -9,39 +10,48 @@ reservaService.agregarReserva = async (data) => {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
-    if (!data.fechaReservacion || !data.clienteId || !data.vacanteId) {
-        throw new Error('Los campos de Fecha de Reservacion, clienteId y vacanteId se deben completar')
+    const transaccion = await sequelize.transaction();
+    try {
+        if (!data.fechaReservacion || !data.clienteId || !data.vacanteId || !data.cantidadPersonas) {
+            throw new Error('Los campos de Fecha de Reservacion, cantidadPersonas, clienteId y vacanteId se deben completar')
+        }
+
+        const cliente = await Cliente.findOne({
+            where: {
+                id: data.clienteId
+            },
+            transaction: transaccion
+        });
+
+        if (!cliente) {
+            throw new Error('Cliente no registrado.');
+        }
+
+        const vacante = await vacanteService.findVacante(data.vacanteId);
+
+        if (!vacante) {
+            throw new Error('La vacante no existe');
+        }
+
+        const disponibilidad = await vacanteService.consultarDisponibilidad(data.vacanteId, data.cantidadPersonas)
+        if (!disponibilidad.disponible) {
+            throw new Error(`No quedan cupos disponibles (${disponibilidad.cupoDisponible})`);
+        }
+
+        const fecha = new Date(data.fechaReservacion);
+        fecha.setHours(0, 0, 0, 0);
+        if (fecha < hoy) {
+            throw new Error('La fecha de Reservacion no puede ser anterior a hoy')
+        }
+
+        const reserva = await Reserva.create(data, { transaction: transaccion });
+        await vacanteService.descontarCupo(data.vacanteId, data.cantidadPersonas, transaccion);
+        await transaccion.commit();
+        return reserva;
+    } catch (error) {
+        await transaccion.rollback();
+        throw error;
     }
-
-    const cliente = await Cliente.findOne({
-        where: {
-            id: data.clienteId
-        },
-    });
-
-    if (!cliente) {
-        throw new Error('Cliente no registrado.');
-    }
-
-    const vacante = await Vacante.findOne({
-        where: {
-            id: data.vacanteId
-        },
-    })
-
-    if (!vacante) {
-        throw new Error('La vacante no existe');
-    }
-
-    if (vacante.cupoDisponible <= 0) {
-        throw new Error('No quedan cupos disponibles');
-    }
-
-    if (data.fechaReservacion < hoy) {
-        throw new Error('La fecha de Reservacion no puede ser anterior a hoy')
-    }
-
-    return await Reserva.create(data);
 }
 
 reservaService.traerReservas = async () => {
@@ -74,36 +84,69 @@ reservaService.modificarReservas = async (reservaId, data) => {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
-    const reserva = await Reserva.findByPk(reservaId);
+    const transaccion = await sequelize.transaction();
 
-    if (!reserva) {
-        throw new Error('Reserva no existe');
-    }
+    try {
+        const reserva = await Reserva.findByPk(reservaId, { transaction: transaccion });
 
-    if (data.clienteId) {
-        const cliente = await Cliente.findByPk(data.clienteId);
-        if (!cliente) {
-            throw new Error('Cliente no registrado');
+        if (!reserva) {
+            throw new Error('Reserva no existe');
         }
-    }
 
-    if (data.vacanteId) {
-        const vacante = await Vacante.findByPk(data.vacanteId);
-        if (!vacante) {
-            throw new Error('Vacante no existe')
+        if (data.clienteId) {
+            const cliente = await Cliente.findByPk(data.clienteId, { transaction: transaccion });
+            if (!cliente) {
+                throw new Error('Cliente no registrado');
+            }
         }
-        if (vacante.cupoDisponible <= 0) {
-            throw new Error('Vacante sin cupos disponibles');
-        }
-    }
 
-    if (data.fechaReservacion) {
-        if (data.fechaReservacion < hoy) {
-            throw new Error('La fecha de Reservacion no puede ser anterior a hoy')
+        if (data.vacanteId) {
+            const vacante = await vacanteService.findVacante(data.vacanteId, transaccion)
+            if (!vacante) {
+                throw new Error('Vacante no existe')
+            }
+            if (vacante.cupoDisponible <= 0) {
+                throw new Error('Vacante sin cupos disponibles');
+            }
         }
-    }
 
-    return await reserva.update(data)
+        if (data.fechaReservacion) {
+            const fecha = new Date(data.fechaReservacion);
+            fecha.setHours(0, 0, 0, 0);
+            if (fecha < hoy) {
+                throw new Error('La fecha de Reservacion no puede ser anterior a hoy')
+            }
+        }
+
+        const nuevaVacanteId = data.vacanteId ?? reserva.vacanteId;
+        const nuevaCantidad = data.cantidadPersonas ?? reserva.cantidadPersonas;
+
+        if (data.cantidadPersonas != null || data.vacanteId != null) {
+
+            await vacanteService.restaurarCupo(reserva.vacanteId, reserva.cantidadPersonas, transaccion);
+
+            const disponibilidad = await vacanteService.consultarDisponibilidad(nuevaVacanteId, nuevaCantidad, transaccion);
+            if (!disponibilidad.disponible) {
+                throw new Error('No hay suficientes cupos para la reserva')
+            }
+
+            await vacanteService.descontarCupo(nuevaVacanteId, nuevaCantidad, transaccion);
+
+        }
+
+        await reserva.update(data, {
+            transaction: transaccion
+        })
+
+        await transaccion.commit();
+
+        return reserva;
+
+
+    } catch (error) {
+        await transaccion.rollback();
+        throw error;
+    }
 }
 
 reservaService.eliminarReserva = async (reservaId) => {
@@ -117,7 +160,13 @@ reservaService.eliminarReserva = async (reservaId) => {
             throw new Error('Reserva no encontrada');
         }
 
+        if (reserva.borrado) {
+            throw new Error("La reserva ya fue eliminada");
+        }
 
+        if (reserva.estado == 'confirmada' || reserva.estado == 'pendiente') {
+            await vacanteService.restaurarCupo(reserva.vacanteId, reserva.cantidadPersonas, transaccion);
+        }
         await reserva.update(
             {
                 borrado: true,
@@ -127,7 +176,6 @@ reservaService.eliminarReserva = async (reservaId) => {
                 transaction: transaccion
             });
 
-        //operacion de descuento de vacante desde vacanteService
 
         await transaccion.commit();
         return reserva;
@@ -149,11 +197,11 @@ reservaService.cancelarReserva = async (reservaId) => {
             throw new Error('Reserva no encontrada');
         }
 
-        if (reserva.estado == 'confirmada') {
-            //Operacion de descontar cupo de vacanteService :D
+        if (reserva.estado == 'confirmada' || reserva.estado == 'pendiente') {
+            await vacanteService.restaurarCupo(reserva.vacanteId, reserva.cantidadPersonas, transaccion);
         }
 
-        return await reserva.update(
+        await reserva.update(
             {
                 estado: 'cancelada'
             },
@@ -214,6 +262,10 @@ reservaService.confirmarReserva = async (reservaId, data) => {
             throw new Error('Monto ingresado no puede ser menor q 0');
         }
 
+        if (reserva.estado === 'confirmada') {
+            throw new Error('La reserva ya está confirmada');
+        }
+
         await reserva.update(
             {
                 estado: 'confirmada',
@@ -223,7 +275,6 @@ reservaService.confirmarReserva = async (reservaId, data) => {
                 transaction: transaccion
             });
 
-        //Operacion de ocupar un cupo de vacanteService :D
         await transaccion.commit();
         return reserva;
 

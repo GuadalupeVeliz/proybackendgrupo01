@@ -15,6 +15,10 @@ const Reserva = sequelize.define('Reserva', {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
     },
+    cantidadPersonas: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
     estado: {
         type: DataTypes.ENUM(
             'pendiente',
