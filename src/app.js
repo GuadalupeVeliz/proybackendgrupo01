@@ -3,6 +3,8 @@ const cors = require('cors');
 const empleadoRoutes = require('./routes/empleado.routes');
 const usuarioRoutes = require('./routes/usuario.routes');
 const clienteRoutes = require('./routes/cliente.routes');
+const paqueteRoutes = require('./routes/paquete.routes');
+const vacanteRoutes = require('./routes/vacante.routes');
 
 const CLIENT_PORT = process.env.CLIENT_PORT || 4200;
 const CLIENT_HOST = process.env.CLIENT_HOST || 'localhost';
@@ -15,5 +17,7 @@ app.use(cors({ origin: `http://${CLIENT_HOST}:${CLIENT_PORT}` }));
 app.use('/api/v1/usuarios', usuarioRoutes);
 app.use('/api/v1/empleados', empleadoRoutes);
 app.use('/api/v1/clientes', clienteRoutes);
+app.use('/api/v1/paquetes', paqueteRoutes);
+app.use('/api/v1/vacantes', vacanteRoutes);
 
 module.exports = app;
