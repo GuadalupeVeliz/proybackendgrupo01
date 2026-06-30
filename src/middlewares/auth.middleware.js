@@ -27,4 +27,15 @@ authMiddleware.verifyToken = (req, res, next) => {
     }
 };
 
+authMiddleware.authorize = (rolesPermitidos = []) => {
+    return (req, res, next) => {
+        if (!req.usuarioLogged || !rolesPermitidos.includes(req.usuarioLogged.rol)) {
+            return res.status(403).json({ 
+                error: 'Acceso denegado: No cuenta con los permisos necesarios.' 
+            });
+        }
+        next();
+    };
+};
+
 module.exports = authMiddleware;

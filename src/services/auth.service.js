@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const usuarioService = require('../services/usuario.service');
 const Cliente = require('../models/cliente.model');
 const Empleado = require('../models/empleado.model');
+const getRol = require('../utils/role.util');
 
 const authService = {};
 
@@ -50,11 +51,7 @@ authService.loginUsuario = async (correoElectronico, contraseña) => {
         throw new Error('Contraseña incorrecta.');
     }
 
-    let rol = usuario.empleado
-        ? usuario.empleado.esGerente
-            ? 'Gerente'
-            : 'Recepcionista'
-        : 'Cliente';
+    let rol = getRol(usuario);
 
     const token = jwt.sign(
         { usuarioId: usuario.id, rol: rol },
