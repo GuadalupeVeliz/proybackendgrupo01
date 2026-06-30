@@ -1,4 +1,7 @@
+const Cliente = require('../models/cliente.model');
+const Empleado = require('../models/empleado.model');
 const Usuario = require('../models/usuario.model');
+const bcrypt = require('bcryptjs');
 
 const usuarioService = {};
 
@@ -13,7 +16,37 @@ usuarioService.addUsuario = async (datosUsuario) => {
         throw new Error('El correo electronico se encuentra registrado.');
     }
 
-    return await Usuario.create(datosUsuario);
+    const salt = await bcrypt.genSalt(10);
+    const contraseñaEncriptada = await bcrypt.hash(
+        datosUsuario.contraseña,
+        salt
+    );
+
+    datosUsuario.contraseña = contraseñaEncriptada;
+    const nuevoUsuario = await Usuario.create(datosUsuario);
+
+    if (datosUsuario.legajo) {
+        await Empleado.create({
+            legajo: datosUsuario.legajo,
+            sede: datosUsuario.sede,
+            esGerente: datosUsuario.esGerente,
+            usuarioId: nuevoUsuario.id,
+        });
+    } else if (datosUsuario.dni) {
+        await Cliente.create({
+            dni: datosUsuario.dni,
+            nombreCompleto: datosUsuario.nombreCompleto,
+            telefono: datosUsuario.telefono,
+            usuarioId: nuevoUsuario.id,
+        });
+    } else {
+        await nuevoUsuario.destroy();
+        throw new Error(
+            'No se proporcionaron datos suficientes para crear un perfil de usuario.'
+        );
+    }
+
+    return nuevoUsuario;
 };
 
 usuarioService.findUsuarios = async () => {

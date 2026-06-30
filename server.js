@@ -11,7 +11,7 @@ const swaggerFile = require('./swagger-output.json');
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 sequelize
-    .sync({ force: false })
+    .sync({ force: true })
     .then(() => {
         console.log('Tablas de PostgreSQL Sincronizadas');
         app.listen(PORT, () => {
