@@ -1,16 +1,27 @@
 const Empleado = require('../models/empleado.model');
+const Usuario = require('../models/usuario.model')
 
 const empleadoService = {};
 
 empleadoService.addEmpleado = async (datosEmpleado) => {
-    const empleado = await Empleado.findOne({
+    const legajo = await Empleado.findOne({
         where: {
             legajo: datosEmpleado.legajo,
         },
     });
 
-    if (empleado) {
+    if (legajo) {
         throw new Error('El legajo se encuentra registrado.');
+    }
+
+    const correElectronico = await Usuario.findOne({
+        where: {
+            correoElectronico: datosEmpleado.correoElectronico,
+        },
+    });
+
+    if (correElectronico) {
+        throw new Error('El correo electrónico ya está asociado a otro usuario.');
     }
 
     return await Empleado.create(datosEmpleado);

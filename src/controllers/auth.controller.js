@@ -43,4 +43,17 @@ authController.logoutUsuario = async (req, res) => {
     }
 };
 
+authController.googleCallback = async (req, res) => {
+    try {
+        const token = authService.generarTokenGoogle(req.user);
+
+        return res.status(200).json({
+            mensaje: 'Login exitoso',
+            token: token
+        });
+    } catch (error) {
+        return res.status(500).json({ error: 'Error al generar la sesión' });
+    }
+};
+
 module.exports = authController;
