@@ -1,5 +1,4 @@
 const Empleado = require('../models/empleado.model');
-const Usuario = require('../models/usuario.model')
 
 const empleadoService = {};
 
@@ -12,16 +11,6 @@ empleadoService.addEmpleado = async (datosEmpleado) => {
 
     if (legajo) {
         throw new Error('El legajo se encuentra registrado.');
-    }
-
-    const correElectronico = await Usuario.findOne({
-        where: {
-            correoElectronico: datosEmpleado.correoElectronico,
-        },
-    });
-
-    if (correElectronico) {
-        throw new Error('El correo electrónico ya está asociado a otro usuario.');
     }
 
     return await Empleado.create(datosEmpleado);
@@ -48,6 +37,21 @@ empleadoService.editEmpleado = async (empleadoId, datosEmpleado) => {
         throw new Error('Empleado no encontrado.');
     }
 
+    if (datosEmpleado.legajo) {
+        const dupplicatedLegajo = await Empleado.findOne({
+            where: {
+                legajo: datosEmpleado.legajo,
+                id: { [Op.ne]: empleadoId },
+            },
+        });
+
+        if (dupplicatedLegajo) {
+            throw new Error(
+                'El legajo ya se encuentra registrado por otro empleado.'
+            );
+        }
+    }
+
     return await empleado.update(datosEmpleado);
 };
 
@@ -58,7 +62,7 @@ empleadoService.deleteEmpleado = async (empleadoId) => {
         throw new Error('Empleado no encontrado.');
     }
 
-    return await empleado.destroy();
+    return await empleado.update({ activo: false });
 };
 
 module.exports = empleadoService;

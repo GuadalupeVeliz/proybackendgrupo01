@@ -1,18 +1,18 @@
 const { DataTypes } = require('sequelize');
-const Cliente = require('../models/cliente.model');
-const Empleado = require('../models/empleado.model');
 const sequelize = require('../../config/database.config');
+const Cliente = require('./cliente.model');
+const Empleado = require('./empleado.model');
 
 const Usuario = sequelize.define(
     'Usuario',
     {
         correoElectronico: {
             type: DataTypes.STRING,
-            allowNull: false,
             unique: true,
             validate: {
                 isEmail: true,
             },
+            allowNull: false,
         },
         contraseña: {
             type: DataTypes.STRING,
@@ -20,18 +20,18 @@ const Usuario = sequelize.define(
         },
         fechaCreacion: {
             type: DataTypes.DATE,
-            allowNull: false,
             defaultValue: DataTypes.NOW,
+            allowNull: false,
         },
         ultimoAcceso: {
             type: DataTypes.DATE,
-            allowNull: false,
             defaultValue: DataTypes.NOW,
+            allowNull: false,
         },
         activo: {
             type: DataTypes.BOOLEAN,
-            allowNull: false,
             defaultValue: true,
+            allowNull: false,
         },
     },
     {
@@ -40,10 +40,14 @@ const Usuario = sequelize.define(
     }
 );
 
-Usuario.hasOne(Cliente, { as: 'cliente', foreignKey: 'usuarioId' });
-Cliente.belongsTo(Usuario, { foreignKey: 'usuarioId' });
+Usuario.hasOne(Cliente, {
+    foreignKey: 'usuarioId',
+    as: 'cliente',
+});
 
-Usuario.hasOne(Empleado, { as: 'empleado', foreignKey: 'usuarioId' });
-Empleado.belongsTo(Usuario, { foreignKey: 'usuarioId' });
+Usuario.hasOne(Empleado, {
+    foreignKey: 'usuarioId',
+    as: 'empleado',
+});
 
 module.exports = Usuario;

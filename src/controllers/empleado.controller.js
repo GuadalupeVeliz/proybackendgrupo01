@@ -4,12 +4,6 @@ const empleadoController = {};
 
 empleadoController.createEmpleado = async (req, res) => {
     try {
-        const rolUsuarioLogged = req.usuarioLogged.rol;
-
-        if (rolUsuarioLogged !== 'Gerente') {
-            return res.status(403).json({ error: 'Acceso denegado. Solo el Gerente puede crear empleados.' });
-        }
-
         const empleado = await empleadoService.addEmpleado(req.body);
         return res.status(201).json(empleado);
     } catch (error) {

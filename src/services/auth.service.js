@@ -12,13 +12,13 @@ const authService = {};
 authService.registerUsuario = async (datosRegistro) => {
     const usuario = await usuarioService.addUsuario(datosRegistro);
 
-    sendEmail(
-        usuario.correoElectronico,
-        '¡Bienvenido a nuestro sistema de reservas!',
-        `Hola ${usuario.correoElectronico}, tu cuenta ha sido creada con éxito.`
-    ).catch(error => {
-        console.error('Error al enviar correo de bienvenida:', error);
-    });
+    // sendEmail(
+    //     usuario.correoElectronico,
+    //     '¡Bienvenido a nuestro sistema de reservas!',
+    //     `Hola ${usuario.correoElectronico}, tu cuenta ha sido creada con éxito.`
+    // ).catch((error) => {
+    //     console.error('Error al enviar correo de bienvenida:', error);
+    // });
 
     const rol = getRol(usuario);
 

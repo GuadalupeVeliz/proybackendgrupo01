@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const Cliente = require('../models/cliente.model');
 
 const clienteService = {};
@@ -37,6 +38,21 @@ clienteService.editCliente = async (clienteId, datosCliente) => {
         throw new Error('Cliente no encontrado.');
     }
 
+    if (datosCliente.dni) {
+        const dupplicatedDni = await Cliente.findOne({
+            where: {
+                dni: datosCliente.dni,
+                id: { [Op.ne]: clienteId },
+            },
+        });
+
+        if (dupplicatedDni) {
+            throw new Error(
+                'El DNI ya se encuentra registrado por otro cliente.'
+            );
+        }
+    }
+
     return await cliente.update(datosCliente);
 };
 
@@ -47,7 +63,7 @@ clienteService.deleteCliente = async (clienteId) => {
         throw new Error('Cliente no encontrado.');
     }
 
-    return await cliente.destroy();
+    return await cliente.update({ activo: false });
 };
 
 module.exports = clienteService;

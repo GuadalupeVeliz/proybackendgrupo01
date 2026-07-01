@@ -70,6 +70,29 @@ usuarioService.editUsuario = async (usuarioId, datosUsuario) => {
         throw new Error('Usuario no encontrado.');
     }
 
+    if (datosUsuario.correoElectronico) {
+        const dupplicatedCorreoElectronico = await Usuario.findOne({
+            where: {
+                correoElectronico: datosUsuario.correoElectronico,
+                id: { [Op.ne]: usuarioId },
+            },
+        });
+
+        if (dupplicatedCorreoElectronico) {
+            throw new Error(
+                'El correo electrónico ya se encuentra registrado.'
+            );
+        }
+    }
+
+    if (datosUsuario.contraseña) {
+        const salt = await bcrypt.genSalt(10);
+        datosUsuario.contraseña = await bcrypt.hash(
+            datosUsuario.contraseña,
+            salt
+        );
+    }
+
     return await usuario.update(datosUsuario);
 };
 
@@ -80,7 +103,7 @@ usuarioService.deleteUsuario = async (usuarioId) => {
         throw new Error('Usuario no encontrado.');
     }
 
-    return await usuario.destroy();
+    return await usuario.update({ activo: false });
 };
 
 module.exports = usuarioService;

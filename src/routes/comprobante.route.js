@@ -13,7 +13,10 @@ const comprobanteCtrl = require('../controllers/comprobante.controller');
 router.get('/mis-comprobantes', comprobanteCtrl.obtenerMisComprobantes);
 
 // Vista filtrada para Gerente/Recepcionista (Angular enviará el ID del cliente al final de la URL)
-router.get('/cliente/:clienteId', comprobanteCtrl.obtenerComprobantesPorCliente);
+router.get(
+    '/cliente/:clienteId',
+    comprobanteCtrl.obtenerComprobantesPorCliente
+);
 
 // Endpoint de descarga de PDF (Angular hará la petición aquí para bajar el archivo)
 router.get('/:id/descargar', comprobanteCtrl.descargarComprobantePDF);
