@@ -1,128 +1,150 @@
-const Comprobante = require('../models/comprobante.model');
-const Reserva = require('../models/reserva.model');
-const Cliente = require('../models/cliente.model');
-const Vacante = require('../models/vacante.model');
-const PaqueteTuristico = require('../models/paqueteTuristico.model');
+const {
+  Comprobante,
+  Reserva,
+  Cliente,
+  Vacante,
+  PaqueteTuristico,
+} = require('../models');
 
-// Integración con el módulo de vacante.service
-const vacanteService = require('./vacante.service'); 
+const vacanteService = require('./vacante.service');
 
 const comprobanteService = {};
 
-// Función auxiliar para manejar errores limpiamente
-const crearError = (message, status) => {
-    const error = new Error(message);
-    error.status = status;
-    return error;
+comprobanteService.findComprobantesByCliente = async (clienteId) => {
+  if (!clienteId) {
+    throw new Error('El ID del cliente es requerido.');
+  }
+
+  return await Comprobante.findAll({
+    where: { activo: true },
+    include: [
+      {
+        model: Reserva,
+        as: 'reserva',
+        required: true,
+        include: [
+          {
+            model: Cliente,
+            as: 'cliente',
+            where: { id: clienteId, activo: true },
+          },
+          {
+            model: Vacante,
+            as: 'vacante',
+            include: [{ model: PaqueteTuristico, as: 'paqueteTuristico' }],
+          },
+        ],
+      },
+    ],
+  });
 };
 
-// ==========================================
-// LÓGICA DE NEGOCIO Y CONSULTAS COMPLEJAS
-// ==========================================
+comprobanteService.findComprobanteData = async (comprobanteId) => {
+  if (!comprobanteId) {
+    throw new Error('El ID del comprobante es requerido.');
+  }
 
-comprobanteService.obtenerComprobantesPorClienteId = async (clienteId) => {
-    return await Comprobante.findAll({
-        include: [{
-            model: Reserva,
-            as: 'reserva',
-            required: true,
-            include: [
-                { 
-                    model: Cliente, 
-                    as: 'cliente',
-                    where: { id: clienteId } 
-                },
-                { 
-                    model: Vacante, 
-                    as: 'vacante',
-                    include: [{ model: PaqueteTuristico, as: 'paquete' }] // Alias corregido
-                }
-            ]
-        }]
-    });
+  const comprobante = await Comprobante.findOne({
+    where: { id: comprobanteId, activo: true },
+    include: [
+      {
+        model: Reserva,
+        as: 'reserva',
+        include: [
+          { model: Cliente, as: 'cliente' },
+          {
+            model: Vacante,
+            as: 'vacante',
+            include: [{ model: PaqueteTuristico, as: 'paqueteTuristico' }],
+          },
+        ],
+      },
+    ],
+  });
+
+  if (!comprobante) {
+    throw new Error('Comprobante no encontrado o inactivo.');
+  }
+
+  return comprobante;
 };
 
-comprobanteService.obtenerDatosComprobanteParaPDF = async (id) => {
-    const comprobante = await Comprobante.findByPk(id, {
-        include: [{
-            model: Reserva,
-            as: 'reserva',
-            include: [
-                { model: Cliente, as: 'cliente' },
-                { 
-                    model: Vacante, 
-                    as: 'vacante', 
-                    include: [{ model: PaqueteTuristico, as: 'paquete' }] // Alias corregido
-                }
-            ]
-        }]
-    });
+comprobanteService.processCancelacion = async (reservaId) => {
+  if (!reservaId) {
+    throw new Error('El reservaId es obligatorio.');
+  }
 
-    if (!comprobante) throw crearError('Comprobante no encontrado', 404);
-    
-    return comprobante;
+  const reserva = await Reserva.findByPk(reservaId);
+
+  if (!reserva) {
+    throw new Error('Reserva no encontrada.');
+  }
+
+  if (reserva.estado === 'cancelada') {
+    throw new Error('La reserva ya se encuentra cancelada.');
+  }
+
+  await reserva.update({ estado: 'cancelada' });
+
+  await vacanteService.restaurarCupo(
+    reserva.vacanteId,
+    reserva.cantidadPersonas
+  );
+
+  const comprobante = await Comprobante.create({
+    numero: `CAN-${reserva.id}-${Date.now()}`,
+    fechaEmision: new Date(),
+    tipo: 'cancelacion',
+    reservaId: reservaId,
+  });
+
+  return comprobante;
 };
 
-comprobanteService.procesarCancelacion = async (reservaId) => {
-    if (!reservaId) throw crearError('El reservaId es obligatorio', 400);
-
-    const reserva = await Reserva.findByPk(reservaId);
-    if (!reserva) throw crearError('Reserva no encontrada', 404);
-
-    if (reserva.estado === 'cancelada') {
-        throw crearError('La reserva ya se encuentra cancelada', 400);
-    }
-
-    // 1. Actualizamos el estado de la reserva
-    await reserva.update({ estado: 'cancelada' });
-
-    // 2. Restauramos el cupo usando el servicio de vacante.service
-    // Asumimos 1 lugar devuelto.
-    await vacanteService.descontarCupo(reserva.vacanteId, 1);
-
-    // 3. Generamos el comprobante
-    const comprobante = await Comprobante.create({
-        numero: `CAN-${Date.now()}`,
-        fechaEmision: new Date(),
-        tipo: 'cancelacion',
-        reservaId: reservaId
-    });
-
-    return comprobante;
+comprobanteService.findComprobantes = async () => {
+  return await Comprobante.findAll({
+    where: { activo: true },
+    include: [{ model: Reserva, as: 'reserva' }],
+    order: [['createdAt', 'DESC']],
+  });
 };
 
-// ==========================================
-// LÓGICA CRUD ESTÁNDAR
-// ==========================================
+comprobanteService.findComprobante = async (id) => {
+  if (!id) throw new Error('El ID del comprobante es requerido.');
 
-comprobanteService.obtenerTodos = async () => {
-    return await Comprobante.findAll({
-        include: [{ model: Reserva, as: 'reserva' }]
-    });
+  const comprobante = await Comprobante.findOne({
+    where: { id, activo: true },
+    include: [{ model: Reserva, as: 'reserva' }],
+  });
+
+  if (!comprobante) throw new Error('Comprobante no encontrado.');
+  return comprobante;
 };
 
-comprobanteService.obtenerPorId = async (id) => {
-    const comprobante = await Comprobante.findByPk(id, {
-        include: [{ model: Reserva, as: 'reserva' }]
-    });
-    if (!comprobante) throw crearError('Comprobante no encontrado', 404);
-    return comprobante;
+comprobanteService.addComprobante = async (data) => {
+  return await Comprobante.create(data);
 };
 
-comprobanteService.crear = async (data) => {
-    return await Comprobante.create(data);
+comprobanteService.editComprobante = async (id, data) => {
+  if (!id) throw new Error('El ID del comprobante es requerido.');
+
+  const comprobante = await Comprobante.findOne({
+    where: { id, activo: true },
+  });
+  if (!comprobante) throw new Error('Comprobante no encontrado.');
+
+  return await comprobante.update(data);
 };
 
-comprobanteService.actualizar = async (id, data) => {
-    const actualizado = await Comprobante.update(data, { where: { id } });
-    if (actualizado[0] === 0) throw crearError('Comprobante no encontrado o sin cambios', 404);
-    return true;
-};
+comprobanteService.deleteComprobante = async (id) => {
+  if (!id) throw new Error('El ID del comprobante es requerido.');
 
-comprobanteService.eliminar = async (id) => {
-    const eliminado = await Comprobante.destroy({ where: { id } });
-    if (!eliminado) throw crearError('Comprobante no encontrado', 404);
-    return true;
+  const comprobante = await Comprobante.findOne({
+    where: { id, activo: true },
+  });
+  if (!comprobante) throw new Error('Comprobante no encontrado.');
+
+  return await comprobante.update({ activo: false });
 };
 
 module.exports = comprobanteService;

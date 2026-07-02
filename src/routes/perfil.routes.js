@@ -4,11 +4,9 @@ const perfilController = require('../controllers/perfil.controller');
 
 const perfilRoutes = express.Router();
 
-perfilRoutes.get('/', authMiddleware.verifyToken, perfilController.getPerfil);
-perfilRoutes.put(
-    '/',
-    authMiddleware.verifyToken,
-    perfilController.updatePerfil
-);
+perfilRoutes.use(authMiddleware.verifyToken);
+
+perfilRoutes.get('/', perfilController.getPerfil);
+perfilRoutes.put('/', perfilController.updatePerfil);
 
 module.exports = perfilRoutes;

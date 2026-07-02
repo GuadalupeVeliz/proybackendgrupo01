@@ -1,97 +1,111 @@
-const Cliente = require('../models/cliente.model');
-const Reserva = require('../models/reserva.model');
 const reservaService = require('../services/reserva.service');
 
-const reservaCtrl = {};
+const reservaController = {};
 
-reservaCtrl.createReserva = async (req, res) => {
-    try {
-        const reserva = await reservaService.agregarReserva(req.body);
-        res.status(201).json(reserva);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            msg: 'Error al crear Reserva',
-            error: error.message
-        });
+reservaController.createReserva = async (req, res) => {
+  try {
+    const reserva = await reservaService.addReserva(req.body);
+    return res.status(201).json({
+      mensaje: 'Reserva creada con éxito',
+      reserva,
+    });
+  } catch (error) {
+    return res.status(400).json({ mensaje: error.message });
+  }
+};
+
+reservaController.getReservas = async (req, res) => {
+  try {
+    const reservas = await reservaService.findReservas();
+    return res.status(200).json({ reservas });
+  } catch (error) {
+    return res.status(500).json({ mensaje: 'Error al obtener reservas' });
+  }
+};
+
+reservaController.getReserva = async (req, res) => {
+  try {
+    const reserva = await reservaService.findReserva(req.params.id);
+    return res.status(200).json({ reserva });
+  } catch (error) {
+    return res.status(404).json({ mensaje: error.message });
+  }
+};
+
+reservaController.getReservasByCliente = async (req, res) => {
+  try {
+    const reservas = await reservaService.findReservasByCliente(
+      req.params.clienteId
+    );
+    if (!reservas || reservas.length === 0) {
+      return res
+        .status(404)
+        .json({ mensaje: 'No se encontraron reservas para este cliente' });
     }
-}
+    return res.status(200).json({ reservas });
+  } catch (error) {
+    return res.status(400).json({ mensaje: error.message });
+  }
+};
 
-reservaCtrl.getReservas = async (req, res) => {
-    try {
-        const reservas = await reservaService.traerReservas()
-        res.status(200).json(reservas);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            msg: error.message
-        });
+reservaController.updateReserva = async (req, res) => {
+  try {
+    const reserva = await reservaService.editReservas(req.params.id, req.body);
+    return res.status(200).json({
+      mensaje: 'Reserva actualizada con éxito',
+      reserva,
+    });
+  } catch (error) {
+    if (
+      error.message.includes('no existe') ||
+      error.message.includes('no encontrada')
+    ) {
+      return res.status(404).json({ mensaje: error.message });
     }
-}
+    return res.status(400).json({ mensaje: error.message });
+  }
+};
 
-reservaCtrl.updateReserva = async (req, res) => {
-    try {
-        const empleado = await reservaService.modificarReservas(req.params.id, req.body)
-        res.status(200).json({
-            msg: 'Reserva actualizada'
-        })
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            msg: 'Error al actualizar Reserva',
-            error: error.message
-        });
+reservaController.deleteReserva = async (req, res) => {
+  try {
+    await reservaService.deleteReserva(req.params.id);
+    return res.status(204).send();
+  } catch (error) {
+    return res.status(404).json({ mensaje: error.message });
+  }
+};
+
+reservaController.cancelReserva = async (req, res) => {
+  try {
+    const reserva = await reservaService.cancelReserva(req.params.id);
+    return res.status(200).json({
+      mensaje: 'Reserva cancelada',
+      reserva,
+    });
+  } catch (error) {
+    if (error.message.includes('no encontrada')) {
+      return res.status(404).json({ mensaje: error.message });
     }
-}
+    return res.status(400).json({ mensaje: error.message });
+  }
+};
 
-reservaCtrl.deleteReserva = async (req, res) => {
-    try {
-        const reserva = await reservaService.eliminarReserva(req.params.id);
-        res.status(200).json({
-            msg: 'Reserva eliminada'
-        })
-    } catch (error) {
-        res.status(404).json({
-            msg: error.message
-        })
+reservaController.checkoutReserva = async (req, res) => {
+  try {
+    const reserva = await reservaService.checkoutReserva(
+      req.params.id,
+      req.body
+    );
+    return res.status(200).json({
+      mensaje: 'Reserva confirmada',
+      reserva,
+    });
+  } catch (error) {
+    if (error.message.includes('no encontrada')) {
+      return res.status(404).json({ mensaje: error.message });
     }
-}
+    return res.status(400).json({ mensaje: error.message });
+  }
+};
 
-reservaCtrl.cancelarReserva = async (req, res) => {
-    try {
-        await reservaService.cancelarReserva(req.params.id);
-        res.status(200).json({
-            msg: 'Reserva Cancelada'
-        })
-    } catch (error) {
-        res.status(500).json({
-            msg: error.message
-        })
-    }
-}
-
-reservaCtrl.getReservasPorCliente = async (req, res) => {
-    try {
-        const reservas = await reservaService.traerReservasPorCliente(req.params.clienteId);
-        res.status(200).json(reservas);
-    } catch (error) {
-        res.status(400).json({
-            msg: error.message
-        })
-    }
-}
-
-reservaCtrl.confirmarReserva = async (req, res) => {
-    try {
-        await reservaService.confirmarReserva(req.params.id,req.body);
-        res.status(200).json({
-            msg: 'Reserva confirmada'
-        });
-    } catch (error) {
-        res.status(404).json({
-            error: error.message
-        });
-    }
-}
-
-module.exports = reservaCtrl
+module.exports = reservaController;

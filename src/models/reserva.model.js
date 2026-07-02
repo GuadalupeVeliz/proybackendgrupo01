@@ -1,65 +1,60 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/database.config');
-const Comprobante = require('./comprobante.model');
-const Pago = require('./pago.model');
-const Vacante = require('./vacante.model');
-const Cliente = require('./cliente.model');
 
 const Reserva = sequelize.define(
-    'Reserva',
-    {
-        fechaReservacion: {
-            type: DataTypes.DATEONLY,
-            allowNull: false,
+  'Reserva',
+  {
+    fechaReservacion: {
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+      validate: {
+        isAfter: {
+          args: [new Date().toISOString().split('T')[0]],
+          msg: 'La fecha de reservación debe ser posterior a la fecha actual.',
         },
-        fechaCreacion: {
-            type: DataTypes.DATE,
-            defaultValue: DataTypes.NOW,
-        },
-        cantidadPersonas: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-        estado: {
-            type: DataTypes.ENUM,
-            values: ['pendiente', 'confirmada', 'cancelada'],
-            defaultValue: 'pendiente',
-            allowNull: false,
-        },
-        montoPagado: {
-            type: DataTypes.DECIMAL(10, 2),
-            allowNull: true,
-        },
-        activo: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: true,
-            allowNull: false,
-        },
+      },
     },
-    {
-        tableName: 'reservas',
-        timestamps: true,
-    }
+    fechaCreacion: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    cantidadPersonas: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        min: {
+          args: [1],
+          msg: 'La reserva debe ser como mínimo para 1 persona.',
+        },
+      },
+    },
+    estado: {
+      type: DataTypes.ENUM,
+      values: ['pendiente', 'confirmada', 'cancelada'],
+      defaultValue: 'pendiente',
+      allowNull: false,
+    },
+    montoPagado: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      validate: {
+        isPositive(value) {
+          if (value != null && parseFloat(value) < 0) {
+            throw new Error('El monto pagado no puede ser negativo.');
+          }
+        },
+      },
+    },
+    activo: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      allowNull: false,
+    },
+  },
+  {
+    tableName: 'reservas',
+    timestamps: true,
+  }
 );
-
-Reserva.hasOne(Comprobante, {
-    foreignKey: 'reservaId',
-    as: 'comprobante',
-});
-
-Reserva.hasOne(Pago, {
-    foreignKey: 'reservaId',
-    as: 'pago',
-});
-
-Reserva.belongsTo(Vacante, {
-    foreignKey: 'vacanteId',
-    as: 'vacante',
-});
-
-Reserva.belongsTo(Cliente, {
-    foreignKey: 'clienteId',
-    as: 'cliente',
-});
 
 module.exports = Reserva;
