@@ -1,287 +1,257 @@
-const sequelize = require('../../config/database.config');
-const Cliente = require('../models/cliente.model');
-const Reserva = require('../models/reserva.model');
-const Vacante = require('../models/vacante.model');
+const {
+  Vacante,
+  Reserva,
+  Cliente,
+  PaqueteTuristico,
+  Comprobante,
+} = require('../models');
 const vacanteService = require('./vacante.service');
 
 const reservaService = {};
 
-reservaService.agregarReserva = async (data) => {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+reservaService.addReserva = async (datosReserva) => {
+  if (
+    !datosReserva.fechaReservacion ||
+    !datosReserva.clienteId ||
+    !datosReserva.vacanteId ||
+    !datosReserva.cantidadPersonas
+  ) {
+    throw new Error(
+      'Los campos de Fecha de Reservacion, cantidadPersonas, clienteId y vacanteId se deben completar'
+    );
+  }
 
-    const transaccion = await sequelize.transaction();
-    try {
-        if (!data.fechaReservacion || !data.clienteId || !data.vacanteId || !data.cantidadPersonas) {
-            throw new Error('Los campos de Fecha de Reservacion, cantidadPersonas, clienteId y vacanteId se deben completar')
-        }
+  const cliente = await Cliente.findByPk(datosReserva.clienteId);
+  if (!cliente) {
+    throw new Error('Cliente no registrado.');
+  }
 
-        const cliente = await Cliente.findOne({
-            where: {
-                id: data.clienteId
-            },
-            transaction: transaccion
-        });
+  const vacante = await Vacante.findOne({
+    where: { id: datosReserva.vacanteId, activo: true },
+    include: { model: PaqueteTuristico, as: 'paqueteTuristico' },
+  });
+  if (!vacante) {
+    throw new Error('La vacante no existe o está dada de baja.');
+  }
 
-        if (!cliente) {
-            throw new Error('Cliente no registrado.');
-        }
+  const disponibilidad = await vacanteService.consultarDisponibilidad(
+    datosReserva.vacanteId,
+    datosReserva.cantidadPersonas
+  );
+  if (!disponibilidad.disponible) {
+    throw new Error(
+      `No quedan cupos disponibles (${disponibilidad.cupoDisponible})`
+    );
+  }
 
-        const vacante = await vacanteService.findVacante(data.vacanteId);
+  const reserva = await Reserva.create(datosReserva);
 
-        if (!vacante) {
-            throw new Error('La vacante no existe');
-        }
+  await vacanteService.descontarCupo(
+    datosReserva.vacanteId,
+    datosReserva.cantidadPersonas
+  );
 
-        const disponibilidad = await vacanteService.consultarDisponibilidad(data.vacanteId, data.cantidadPersonas)
-        if (!disponibilidad.disponible) {
-            throw new Error(`No quedan cupos disponibles (${disponibilidad.cupoDisponible})`);
-        }
-
-        const fecha = new Date(data.fechaReservacion);
-        fecha.setHours(0, 0, 0, 0);
-        if (fecha < hoy) {
-            throw new Error('La fecha de Reservacion no puede ser anterior a hoy')
-        }
-
-        const reserva = await Reserva.create(data, { transaction: transaccion });
-        await vacanteService.descontarCupo(data.vacanteId, data.cantidadPersonas, transaccion);
-        await transaccion.commit();
-        return reserva;
-    } catch (error) {
-        await transaccion.rollback();
-        throw error;
-    }
-}
-
-reservaService.traerReservas = async () => {
-    return await Reserva.findAll({
-        include: [{
-            model: Cliente,
-            as: 'cliente',
-            attributes: {
-                exclude: ['createdAt', 'updatedAt']
-            }
-        },
-        {
-            model: Vacante,
-            as: 'vacante',
-            attributes: {
-                exclude: ['createdAt', 'updatedAt']
-            }
-        }],
-        where: {
-            borrado: false
-        },
-        order: [['fechaCreacion', 'ASC']],
-        attributes: {
-            exclude: ['createdAt', 'updatedAt']
-        }
-    });
+  return reserva;
 };
 
-reservaService.modificarReservas = async (reservaId, data) => {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+reservaService.findReservas = async () => {
+  return await Reserva.findAll({
+    include: [
+      {
+        model: Cliente,
+        as: 'cliente',
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
+      },
+      {
+        model: Vacante,
+        as: 'vacante',
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
+      },
+    ],
+    where: { activo: true },
+    order: [['fechaCreacion', 'ASC']],
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
+  });
+};
 
-    const transaccion = await sequelize.transaction();
+reservaService.findReserva = async (reservaId) => {
+  const reserva = await Reserva.findOne({
+    where: { id: reservaId, activo: true },
+  });
 
-    try {
-        const reserva = await Reserva.findByPk(reservaId, { transaction: transaccion });
+  if (!reserva) {
+    throw new Error('Reserva no encontrada.');
+  }
 
-        if (!reserva) {
-            throw new Error('Reserva no existe');
-        }
+  return reserva;
+};
 
-        if (data.clienteId) {
-            const cliente = await Cliente.findByPk(data.clienteId, { transaction: transaccion });
-            if (!cliente) {
-                throw new Error('Cliente no registrado');
-            }
-        }
+reservaService.editReservas = async (reservaId, data) => {
+  const reserva = await Reserva.findByPk(reservaId);
 
-        if (data.vacanteId) {
-            const vacante = await vacanteService.findVacante(data.vacanteId, transaccion)
-            if (!vacante) {
-                throw new Error('Vacante no existe')
-            }
-            if (vacante.cupoDisponible <= 0) {
-                throw new Error('Vacante sin cupos disponibles');
-            }
-        }
+  if (!reserva) {
+    throw new Error('Reserva no existe');
+  }
 
-        if (data.fechaReservacion) {
-            const fecha = new Date(data.fechaReservacion);
-            fecha.setHours(0, 0, 0, 0);
-            if (fecha < hoy) {
-                throw new Error('La fecha de Reservacion no puede ser anterior a hoy')
-            }
-        }
+  if (!reserva.activo) {
+    throw new Error('No se puede modificar una reserva eliminada.');
+  }
 
-        const nuevaVacanteId = data.vacanteId ?? reserva.vacanteId;
-        const nuevaCantidad = data.cantidadPersonas ?? reserva.cantidadPersonas;
+  if (reserva.estado === 'cancelada') {
+    throw new Error('No se puede modificar una reserva que ya fue cancelada.');
+  }
 
-        if (data.cantidadPersonas != null || data.vacanteId != null) {
+  if (data.clienteId) {
+    const cliente = await Cliente.findByPk(data.clienteId);
 
-            await vacanteService.restaurarCupo(reserva.vacanteId, reserva.cantidadPersonas, transaccion);
-
-            const disponibilidad = await vacanteService.consultarDisponibilidad(nuevaVacanteId, nuevaCantidad, transaccion);
-            if (!disponibilidad.disponible) {
-                throw new Error('No hay suficientes cupos para la reserva')
-            }
-
-            await vacanteService.descontarCupo(nuevaVacanteId, nuevaCantidad, transaccion);
-
-        }
-
-        await reserva.update(data, {
-            transaction: transaccion
-        })
-
-        await transaccion.commit();
-
-        return reserva;
-
-
-    } catch (error) {
-        await transaccion.rollback();
-        throw error;
+    if (!cliente) {
+      throw new Error('Cliente no registrado');
     }
-}
+  }
 
-reservaService.eliminarReserva = async (reservaId) => {
+  const nuevaVacanteId = data.vacanteId ?? reserva.vacanteId;
+  const nuevaCantidad = data.cantidadPersonas ?? reserva.cantidadPersonas;
 
-    const transaccion = await sequelize.transaction();
-    try {
+  if (data.cantidadPersonas != null || data.vacanteId != null) {
+    await vacanteService.restaurarCupo(
+      reserva.vacanteId,
+      reserva.cantidadPersonas
+    );
 
-        const reserva = await Reserva.findByPk(reservaId, { transaction: transaccion });
-
-        if (!reserva) {
-            throw new Error('Reserva no encontrada');
-        }
-
-        if (reserva.borrado) {
-            throw new Error("La reserva ya fue eliminada");
-        }
-
-        if (reserva.estado == 'confirmada' || reserva.estado == 'pendiente') {
-            await vacanteService.restaurarCupo(reserva.vacanteId, reserva.cantidadPersonas, transaccion);
-        }
-        await reserva.update(
-            {
-                borrado: true,
-                estado: 'cancelada'
-            },
-            {
-                transaction: transaccion
-            });
-
-
-        await transaccion.commit();
-        return reserva;
-
-    } catch (error) {
-        await transaccion.rollback();
-        throw error;
+    const disponibilidad = await vacanteService.consultarDisponibilidad(
+      nuevaVacanteId,
+      nuevaCantidad
+    );
+    if (!disponibilidad.disponible) {
+      await vacanteService.descontarCupo(
+        reserva.vacanteId,
+        reserva.cantidadPersonas
+      );
+      throw new Error(
+        `No hay suficientes cupos. Solicitados: ${nuevaCantidad}, Disponibles: ${disponibilidad.cupoDisponible}`
+      );
     }
 
-}
+    await vacanteService.descontarCupo(nuevaVacanteId, nuevaCantidad);
+  }
 
-reservaService.cancelarReserva = async (reservaId) => {
+  return await reserva.update({
+    clienteId: data.clienteId ?? reserva.clienteId,
+    vacanteId: nuevaVacanteId,
+    cantidadPersonas: nuevaCantidad,
+    fechaReservacion: data.fechaReservacion ?? reserva.fechaReservacion,
+  });
+};
 
-    const transaccion = await sequelize.transaction();
-    try {
-        const reserva = await Reserva.findByPk(reservaId, { transaction: transaccion });
+reservaService.deleteReserva = async (reservaId) => {
+  const reserva = await Reserva.findByPk(reservaId);
+  if (!reserva) {
+    throw new Error('Reserva no encontrada');
+  }
+  if (!reserva.activo) {
+    throw new Error('La reserva ya fue eliminada previamente');
+  }
 
-        if (!reserva) {
-            throw new Error('Reserva no encontrada');
-        }
+  if (reserva.estado !== 'cancelada') {
+    await vacanteService.restaurarCupo(
+      reserva.vacanteId,
+      reserva.cantidadPersonas
+    );
+  }
 
-        if (reserva.estado == 'confirmada' || reserva.estado == 'pendiente') {
-            await vacanteService.restaurarCupo(reserva.vacanteId, reserva.cantidadPersonas, transaccion);
-        }
+  return await reserva.update({
+    activo: false,
+    estado: 'cancelada',
+  });
+};
 
-        await reserva.update(
-            {
-                estado: 'cancelada'
-            },
-            {
-                transaction: transaccion
-            });
+reservaService.cancelReserva = async (reservaId) => {
+  const reserva = await Reserva.findByPk(reservaId);
 
-        await transaccion.commit();
-        return reserva;
+  if (!reserva) {
+    throw new Error('Reserva no encontrada');
+  }
 
-    } catch (error) {
-        await transaccion.rollback()
-        throw error;
+  if (reserva.estado === 'cancelada') {
+    throw new Error('La reserva ya se encuentra cancelada');
+  }
 
-    }
-}
+  await vacanteService.restaurarCupo(
+    reserva.vacanteId,
+    reserva.cantidadPersonas
+  );
 
-reservaService.traerReservasPorCliente = async (clienteId) => {
-    const reservas = await Reserva.findAll({
-        where: {
-            clienteId: clienteId,
-            borrado: false
-        },
-        include: [{
-            model: Cliente,
-            as: 'cliente',
-            attributes: {
-                exclude: ['createdAt', 'updatedAt']
-            }
-        },
-        {
-            model: Vacante,
-            as: 'vacante',
-            attributes: {
-                exclude: ['createdAt', 'updatedAt']
-            }
-        }],
-        attributes: {
-            exclude: ['createdAt', 'updatedAt']
-        }
-    })
-    return reservas;
-}
+  return await reserva.update({ estado: 'cancelada' });
+};
 
-reservaService.confirmarReserva = async (reservaId, data) => {
+reservaService.checkoutReserva = async (reservaId, data) => {
+  const reserva = await Reserva.findOne({
+    where: { id: reservaId, activo: true },
+    include: {
+      model: Vacante,
+      as: 'vacante',
+      include: { model: PaqueteTuristico, as: 'paqueteTuristico' },
+    },
+  });
 
-    const transaccion = await sequelize.transaction();
-    try {
-        const reserva = await Reserva.findByPk(reservaId, { transaction: transaccion });
+  if (!reserva) {
+    throw new Error('Reserva no encontrada o dada de baja.');
+  }
 
-        if (!reserva) {
-            throw new Error('Reserva no encontrada');
-        }
-        if (!data.montoPagado) {
-            throw new Error('Debe ingresar monto para confirmar');
-        }
-        if (data.montoPagado <= 0) {
-            throw new Error('Monto ingresado no puede ser menor q 0');
-        }
+  if (reserva.estado === 'confirmada') {
+    throw new Error('La reserva ya está confirmada.');
+  }
 
-        if (reserva.estado === 'confirmada') {
-            throw new Error('La reserva ya está confirmada');
-        }
+  if (reserva.estado === 'cancelada') {
+    throw new Error('No se puede confirmar una reserva que fue cancelada.');
+  }
 
-        await reserva.update(
-            {
-                estado: 'confirmada',
-                montoPagado: data.montoPagado
-            },
-            {
-                transaction: transaccion
-            });
+  if (!data.montoPagado) {
+    throw new Error('Debe ingresar el monto para confirmar.');
+  }
 
-        await transaccion.commit();
-        return reserva;
+  const precioUnitario = parseFloat(reserva.vacante.paqueteTuristico.precio);
+  const costoTotalEsperado = precioUnitario * reserva.cantidadPersonas;
 
-    } catch (error) {
-        await transaccion.rollback()
-        throw error;
-    }
-}
+  if (parseFloat(data.montoPagado) < costoTotalEsperado) {
+    throw new Error(
+      `Monto insuficiente. El costo total para ${reserva.cantidadPersonas} personas es de $${costoTotalEsperado.toFixed(2)}.`
+    );
+  }
+
+  const reservaActualizada = await reserva.update({
+    estado: 'confirmada',
+    montoPagado: data.montoPagado,
+  });
+
+  await Comprobante.create({
+    numero: `FAC-${reserva.id}-${Date.now()}`,
+    fechaEmision: new Date(),
+    tipo: 'reserva',
+    reservaId: reserva.id,
+    activo: true,
+  });
+
+  return reservaActualizada;
+};
+
+reservaService.findReservasByCliente = async (clienteId) => {
+  return await Reserva.findAll({
+    where: { clienteId, activo: true },
+    include: [
+      {
+        model: Cliente,
+        as: 'cliente',
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
+      },
+      {
+        model: Vacante,
+        as: 'vacante',
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
+      },
+    ],
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
+  });
+};
 
 module.exports = reservaService;

@@ -5,8 +5,12 @@ const jwt = require('jsonwebtoken');
 
 const authRoutes = express.Router();
 
-authRoutes.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-authRoutes.get('/google/callback',
+authRoutes.get(
+    '/google',
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+authRoutes.get(
+    '/google/callback',
     passport.authenticate('google', { session: false }),
     authController.googleCallback
 );

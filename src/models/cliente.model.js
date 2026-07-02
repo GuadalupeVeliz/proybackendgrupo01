@@ -2,26 +2,31 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/database.config');
 
 const Cliente = sequelize.define(
-    'Cliente',
-    {
-        dni: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            unique: true,
-        },
-        nombreCompleto: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        telefono: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
+  'Cliente',
+  {
+    dni: {
+      type: DataTypes.STRING,
+      unique: true,
+      allowNull: false,
     },
-    {
-        tableName: 'clientes',
-        timestamps: true,
-    }
+    nombreCompleto: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    telefono: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    activo: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      allowNull: false,
+    },
+  },
+  {
+    tableName: 'clientes',
+    timestamps: true,
+  }
 );
 
 module.exports = Cliente;

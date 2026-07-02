@@ -1,34 +1,56 @@
-// src/routes/comprobante.route.js
-
 const express = require('express');
-const router = express.Router();
+const comprobanteController = require('../controllers/comprobante.controller');
+const authMiddleware = require('../middlewares/auth.middleware');
 
-const comprobanteCtrl = require('../controllers/comprobante.controller');
+const comprobanteRoutes = express.Router();
 
-// ==========================================
-// RUTAS PERSONALIZADAS POR ROLES (Integrante D)
-// ==========================================
+comprobanteRoutes.use(authMiddleware.verifyToken);
 
-// Vista para el Cliente logueado (Angular hará un GET aquí cuando el cliente entre a su perfil)
-router.get('/mis-comprobantes', comprobanteCtrl.obtenerMisComprobantes);
+comprobanteRoutes.get(
+  '/me',
+  authMiddleware.authorize(['Cliente']),
+  comprobanteController.getMyComprobantes
+);
+comprobanteRoutes.get(
+  '/cliente/:clienteId',
+  authMiddleware.authorize(['Gerente', 'Recepcionista']),
+  comprobanteController.getComprobantesByCliente
+);
+comprobanteRoutes.get(
+  '/:id/download-pdf',
+  authMiddleware.authorize(['Gerente', 'Recepcionista', 'Cliente']),
+  comprobanteController.downloadComprobantePDF
+);
+comprobanteRoutes.post(
+  '/cancel',
+  authMiddleware.authorize(['Gerente', 'Recepcionista']),
+  comprobanteController.processCancelacion
+);
 
-// Vista filtrada para Gerente/Recepcionista (Angular enviará el ID del cliente al final de la URL)
-router.get('/cliente/:clienteId', comprobanteCtrl.obtenerComprobantesPorCliente);
+comprobanteRoutes.get(
+  '/',
+  authMiddleware.authorize(['Gerente', 'Recepcionista']),
+  comprobanteController.getComprobantes
+);
+comprobanteRoutes.post(
+  '/',
+  authMiddleware.authorize(['Gerente', 'Recepcionista']),
+  comprobanteController.createComprobante
+);
+comprobanteRoutes.get(
+  '/:id',
+  authMiddleware.authorize(['Gerente', 'Recepcionista']),
+  comprobanteController.getComprobante
+);
+comprobanteRoutes.put(
+  '/:id',
+  authMiddleware.authorize(['Gerente', 'Recepcionista']),
+  comprobanteController.updateComprobante
+);
+comprobanteRoutes.delete(
+  '/:id',
+  authMiddleware.authorize(['Gerente', 'Recepcionista']),
+  comprobanteController.deleteComprobante
+);
 
-// Endpoint de descarga de PDF (Angular hará la petición aquí para bajar el archivo)
-router.get('/:id/descargar', comprobanteCtrl.descargarComprobantePDF);
-
-// Ruta para generar comprobante cuando se cancela una reserva
-router.post('/cancelacion', comprobanteCtrl.generarComprobanteCancelacion);
-
-// ==========================================
-// RUTAS CRUD ESTÁNDAR
-// ==========================================
-
-router.get('/', comprobanteCtrl.getComprobantes);
-router.get('/:id', comprobanteCtrl.getComprobante);
-router.post('/', comprobanteCtrl.createComprobante);
-router.put('/:id', comprobanteCtrl.updateComprobante);
-router.delete('/:id', comprobanteCtrl.deleteComprobante);
-
-module.exports = router;
+module.exports = comprobanteRoutes;

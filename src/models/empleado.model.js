@@ -2,27 +2,32 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/database.config');
 
 const Empleado = sequelize.define(
-    'Empleado',
-    {
-        legajo: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            unique: true,
-        },
-        sede: {
-            type: DataTypes.ENUM,
-            values: ['central', 'sucursal'],
-            allowNull: false,
-        },
-        esGerente: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false,
-        },
+  'Empleado',
+  {
+    legajo: {
+      type: DataTypes.STRING,
+      unique: true,
+      allowNull: false,
     },
-    {
-        tableName: 'empleados',
-        timestamps: true,
-    }
+    sede: {
+      type: DataTypes.ENUM,
+      values: ['central', 'sucursal'],
+      allowNull: false,
+    },
+    esGerente: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    activo: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      allowNull: false,
+    },
+  },
+  {
+    tableName: 'empleados',
+    timestamps: true,
+  }
 );
 
 module.exports = Empleado;
