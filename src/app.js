@@ -17,6 +17,7 @@ const vacanteRoutes = require('./routes/vacante.routes');
 const reservaRoutes = require('./routes/reserva.routes.js');
 const pagoRoutes = require('./routes/pago.route.js');
 const comprobanteRoutes = require('./routes/comprobante.route.js');
+const dashboardRoutes = require('./routes/dashboard.routes.js');
 
 const CLIENT_PORT = process.env.CLIENT_PORT || 4200;
 const CLIENT_HOST = process.env.CLIENT_HOST || 'localhost';
@@ -38,5 +39,6 @@ app.use('/api/v1/vacantes', vacanteRoutes);
 app.use('/api/v1/reservas', reservaRoutes);
 app.use('/api/v1/pagos', pagoRoutes);
 app.use('/api/v1/comprobantes', comprobanteRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 module.exports = app;
