@@ -7,15 +7,9 @@ const dashboardRoutes = express.Router();
 //dashboardRoutes.use(authMiddleware.verifyToken);
 
 dashboardRoutes.get("/resumen", dashboardController.getResumen);
-dashboardRoutes.get("/reservas-por-mes",dashboardController.getReservasPorMes);
-dashboardRoutes.get(
-  "/reservas-por-estado",
-  dashboardController.getReservasPorEstado,
-);
-dashboardRoutes.get(
-  "/ingresos-evolucion",
-  dashboardController.getIngresosEvolucion,
-);
+dashboardRoutes.get("/reservas-por-mes", dashboardController.getReservasPorMes);
+dashboardRoutes.get("/reservas-por-estado", dashboardController.getReservasPorEstado);
+dashboardRoutes.get("/ingresos-evolucion", dashboardController.getIngresosEvolucion);
 dashboardRoutes.get("/reservas", dashboardController.getReservas);
 
 module.exports = dashboardRoutes;
