@@ -5,20 +5,24 @@ const paqueteTuristicoService = {};
 
 paqueteTuristicoService.addPaqueteTuristico = async (data) => {
   const existingPaqueteTuristico = await PaqueteTuristico.findOne({
-    where: { nombre: data.nombre },
+    where: { nombre: data.nombre, eliminado: false },
   });
 
   if (existingPaqueteTuristico) {
     throw new Error(
-      'El nombre ya está registrado (puede que pertenezca a un paquete turístico dado de baja).'
+      'El nombre ya está registrado (puede que pertenezca a un paquete turístico dado de baja).',
     );
   }
+
+  // if (existingPaqueteTuristico.eliminado) {
+  //   throw new Error('El paquete turístico fue eliminado.');
+  // }
 
   return await PaqueteTuristico.create(data);
 };
 
 paqueteTuristicoService.findPaquetesTuristicos = async (
-  filters = { estado: 'disponible', eliminado: false }
+  filters = { estado: 'disponible', eliminado: false },
 ) => {
   return await PaqueteTuristico.findAll({
     where: filters,
@@ -49,7 +53,7 @@ paqueteTuristicoService.editPaqueteTuristico = async (id, updates) => {
     throw new Error('Paquete turístico no encontrado, no disponible o dado de baja.');
   }
 
-  const duracionEnDiasChanged = updates.duracionEnDias !== existingPaqueteTuristico.duracionDias;
+  const duracionEnDiasChanged = updates.duracionEnDias !== existingPaqueteTuristico.duracionEnDias;
 
   if (updates.duracionEnDias != null && duracionEnDiasChanged) {
     const vacanteAssociated = await Vacante.findOne({
@@ -61,7 +65,7 @@ paqueteTuristicoService.editPaqueteTuristico = async (id, updates) => {
 
       if (vacanteHasReservas) {
         throw new Error(
-          'No se puede modificar la duración del paquete porque ya existen reservas asociadas.'
+          'No se puede modificar la duración del paquete porque ya existen reservas asociadas.',
         );
       }
     }
@@ -79,7 +83,7 @@ paqueteTuristicoService.editPaqueteTuristico = async (id, updates) => {
 
     if (existingNombre) {
       throw new Error(
-        'El nombre ya está registrado (puede que pertenezca a un paquete turístico dado de baja).'
+        'El nombre ya está registrado (puede que pertenezca a un paquete turístico dado de baja).',
       );
     }
   }
@@ -96,7 +100,7 @@ paqueteTuristicoService.deletePaqueteTuristico = async (id) => {
     throw new Error('Paquete no encontrado, no disponible o dado de baja.');
   }
 
-  return await existingPaqueteTuristico.update({ estado: 'disponible', eliminado: true });
+  return await existingPaqueteTuristico.update({ eliminado: true });
 };
 
 module.exports = paqueteTuristicoService;

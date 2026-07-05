@@ -9,7 +9,7 @@ clienteRoutes.use(authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']));
 
 clienteRoutes.get('/', clienteController.getClientes);
 clienteRoutes.post('/', clienteController.createCliente);
-clienteRoutes.get('/:id', clienteController.getCliente);
+clienteRoutes.get('/:id', clienteController.getClienteById);
 clienteRoutes.put('/:id', clienteController.updateCliente);
 clienteRoutes.delete('/:id', clienteController.deleteCliente);
 

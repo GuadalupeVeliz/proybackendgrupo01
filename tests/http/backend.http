@@ -1,19 +1,41 @@
-# reservas.http
-@baseUrl=http://localhost:3000/api/v1/reservas
+# backend.http
 # @import ./auth.http
 # @ref loggedGerente
 # @ref loggedRecepcionista
 # @ref loggedCliente
 
-### GET ALL Reservas (Todos)
-GET {{baseUrl}}
+@baseUrl=http://localhost:3000/api/v1
+
+### CREATE Paquete Turístico
+POST {{baseUrl}}/paquetes-turisticos
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 # Authorization: Bearer {{loggedCliente.data.token}}
 
-### CREATE Reserva (Todos)
-POST {{baseUrl}}
+{
+  "nombre": "Aventura Total Salinas",
+  "ubicacion": "Jujuy",
+  "descripcion": "Tour completo por las salinas.",
+  "duracionEnDias": 3,
+  "precioBase": 1234.56
+}
+
+### CREATE Vacante
+POST {{baseUrl}}/vacantes
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+  "paqueteTuristicoId": 1,
+  "fechaDeSalida": "2026-08-15",
+  "cupoTotal": 10
+}
+
+### CREATE Reserva
+POST {{baseUrl}}/reservas
 Content-Type: application/json
 # Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
@@ -23,54 +45,49 @@ Authorization: Bearer {{loggedCliente.data.token}}
     "clienteId": 1,
     "vacanteId": 1,
     "fechaDeReservacion": "2026-08-15",
-    "cantidadDePersonas": 8
+    "cantidadDePersonas": 3
 }
 
-### GET Reserva BY ID (Todos)
-GET {{baseUrl}}/1
-Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.data.token}}
-# Authorization: Bearer {{loggedRecepcionista.data.token}}
-Authorization: Bearer {{loggedCliente.data.token}}
-
-### UPDATE Reserva (Gerente y Recepcionista)
-PUT {{baseUrl}}/1
-Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.data.token}}
-Authorization: Bearer {{loggedRecepcionista.data.token}}
-# Authorization: Bearer {{loggedCliente.data.token}}
-
-{
-    "cantidadPersonas": 3
-}
-
-### DELETE Reserva (Gerente y Recepcionista)
-DELETE {{baseUrl}}/1
-Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.data.token}}
-Authorization: Bearer {{loggedRecepcionista.data.token}}
-# Authorization: Bearer {{loggedCliente.data.token}}
-
-### GET Reservas BY Cliente ID (Gerente y Recepcionista)
-GET {{baseUrl}}/cliente/1
-Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.data.token}}
-# Authorization: Bearer {{loggedRecepcionista.data.token}}
-Authorization: Bearer {{loggedCliente.data.token}}
-
-### CONFIRMAR Reserva (Todos)
-PUT {{baseUrl}}/checkout/1
+### CONFIRMAR Reserva (Genera un Comprobante de Reserva)
+PUT {{baseUrl}}/reservas/checkout/1
 Content-Type: application/json
 # Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 Authorization: Bearer {{loggedCliente.data.token}}
 
 {
-    "montoPagado": 2
+    "montoPagado": 3703.68
 }
 
-### CANCELAR Reserva (Todos)
-PUT {{baseUrl}}/cancel/1
+### CREATE Pago (Manual) (también genera un comprobante de Reserva)
+POST {{baseUrl}}/pagos
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+  "reservaId": 1,
+  "monto": 3703.68,
+  "metodoPago": "TARJETA_CREDITO"
+}
+
+### CANCELAR Reserva
+PUT {{baseUrl}}/reservas/cancel/1
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+Authorization: Bearer {{loggedCliente.data.token}}
+
+### GET ALL OWN (cliente) Comprobantes
+GET {{baseUrl}}/comprobantes/me
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+Authorization: Bearer {{loggedCliente.data.token}}
+
+### DOWNLOAD Comprobante en PDF
+GET {{baseUrl}}/comprobantes/1/download-pdf
 Content-Type: application/json
 # Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}

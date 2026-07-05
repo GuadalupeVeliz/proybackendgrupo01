@@ -1,8 +1,8 @@
 # auth.http
 @baseUrl=http://localhost:3000/api/v1/auth
 
-### Registrar Gerente (empleado)
-POST {{baseUrl}}/register
+### SIGNUP Gerente (empleado)
+POST {{baseUrl}}/signup
 Content-Type: application/json
 
 {
@@ -13,8 +13,8 @@ Content-Type: application/json
     "esGerente": true
 }
 
-### Registrar Recepcionista (empleado)
-POST {{baseUrl}}/register
+### SIGNUP Recepcionista (empleado)
+POST {{baseUrl}}/signup
 Content-Type: application/json
 
 {
@@ -24,8 +24,8 @@ Content-Type: application/json
     "sede": "sucursal"
 }
 
-### Registrar Cliente
-POST {{baseUrl}}/register
+### SIGNUP Cliente
+POST {{baseUrl}}/signup
 Content-Type: application/json
 
 {
@@ -36,7 +36,7 @@ Content-Type: application/json
     "telefono": "555-000-1234"
 }
 
-### Login Gerente (empleado)
+### LOGIN Gerente (empleado)
 # @name loggedGerente
 POST {{baseUrl}}/login
 Content-Type: application/json
@@ -46,7 +46,7 @@ Content-Type: application/json
     "clave": "gerente-pass"
 }
 
-### Login Recepcionista (empleado)
+### LOGIN Recepcionista (empleado)
 # @name loggedRecepcionista
 POST {{baseUrl}}/login
 Content-Type: application/json
@@ -56,7 +56,7 @@ Content-Type: application/json
     "clave": "recepcionista-pass"
 }
 
-### Login Cliente
+### LOGIN Cliente
 # @name loggedCliente
 POST {{baseUrl}}/login
 Content-Type: application/json
@@ -66,19 +66,19 @@ Content-Type: application/json
     "clave": "cliente-pass"
 }
 
-### Logout
+### LOGOUT
 # @ref loggedGerente
 POST {{baseUrl}}/logout
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
 
-### Logout
+### LOGOUT
 # @ref loggedRecepcionista
 POST {{baseUrl}}/logout
 Content-Type: application/json
 Authorization: Bearer {{loggedRecepcionista.data.token}}
 
-### Logout
+### LOGOUT
 # @ref loggedCliente
 POST {{baseUrl}}/logout
 Content-Type: application/json

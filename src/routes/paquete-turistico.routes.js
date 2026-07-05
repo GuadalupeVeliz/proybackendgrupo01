@@ -9,27 +9,27 @@ paqueteTuristicoRoutes.use(authMiddleware.verifyUserToken);
 paqueteTuristicoRoutes.get(
   '/',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
-  paqueteTuristicoController.getPaquetesTuristicos
+  paqueteTuristicoController.getPaquetesTuristicos,
 );
 paqueteTuristicoRoutes.post(
   '/',
   authMiddleware.authorizeByRole(['Gerente']),
-  paqueteTuristicoController.createPaqueteTuristico
+  paqueteTuristicoController.createPaqueteTuristico,
 );
 paqueteTuristicoRoutes.get(
   '/:id',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
-  paqueteTuristicoController.getPaqueteTuristicoById
+  paqueteTuristicoController.getPaqueteTuristicoById,
 );
 paqueteTuristicoRoutes.put(
   '/:id',
   authMiddleware.authorizeByRole(['Gerente']),
-  paqueteTuristicoController.updatePaqueteTuristico
+  paqueteTuristicoController.updatePaqueteTuristico,
 );
 paqueteTuristicoRoutes.delete(
   '/:id',
   authMiddleware.authorizeByRole(['Gerente']),
-  paqueteTuristicoController.deletePaqueteTuristico
+  paqueteTuristicoController.deletePaqueteTuristico,
 );
 
 module.exports = paqueteTuristicoRoutes;

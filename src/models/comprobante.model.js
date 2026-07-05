@@ -32,7 +32,7 @@ const Comprobante = sequelize.define(
   {
     tableName: 'comprobantes',
     timestamps: true,
-  }
+  },
 );
 
 module.exports = Comprobante;

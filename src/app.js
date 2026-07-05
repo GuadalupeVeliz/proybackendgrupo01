@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(
   cors({
     origin: 'http://172.20.0.3:4200' || `http://${CLIENT_HOST}:${CLIENT_PORT}`,
-  })
+  }),
 );
 
 app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));

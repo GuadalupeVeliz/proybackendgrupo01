@@ -8,16 +8,16 @@
 ### Get Empleados
 GET {{baseUrl}}
 Content-Type: application/json
-Authorization: Bearer {{loggedGerente.token}}
-# Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
 
-### Create Empleado (gerente)
+### CREATE Gerente
 POST {{baseUrl}}
 Content-Type: application/json
-Authorization: Bearer {{loggedGerente.token}}
-# Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
 
 {
     "legajo": "EMP-0001",
@@ -25,39 +25,39 @@ Authorization: Bearer {{loggedGerente.token}}
     "esGerente": true
 }
 
-### Create Empleado (recepcionista)
+### CREATE Recepcionista
 POST {{baseUrl}}
 Content-Type: application/json
-Authorization: Bearer {{loggedGerente.token}}
-# Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
 
 {
     "legajo": "EMP-0002",
     "sede": "sucursal"
 }
 
-### Get Empleado By ID
+### GET Empleado BY ID
 GET {{baseUrl}}/2
 Content-Type: application/json
-Authorization: Bearer {{loggedGerente.token}}
-# Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
 
-### Edit Empleado
+### UPDATE Empleado
 PUT {{baseUrl}}/2
 Content-Type: application/json
-Authorization: Bearer {{loggedGerente.token}}
-# Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
 
 {
     "sede": "central"
 }
 
-### Delete Empleado
+### DELETE Empleado
 DELETE {{baseUrl}}/1
 Content-Type: application/json
-Authorization: Bearer {{loggedGerente.token}}
-# Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}

@@ -5,14 +5,14 @@
 # @ref loggedRecepcionista
 # @ref loggedCliente
 
-### Get PaquetesTuristicos (Todos)
+### GET PaquetesTuristicos (Todos)
 GET {{baseUrl}}
 Content-Type: application/json
 # Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 Authorization: Bearer {{loggedCliente.data.token}}
 
-### Create PaquetesTuristico (Gerente)
+### CREATE PaquetesTuristico (Gerente)
 POST {{baseUrl}}
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
@@ -27,14 +27,14 @@ Authorization: Bearer {{loggedGerente.data.token}}
     "precioBase": 1234.56
 }
 
-### Get PaquetesTuristico By ID (Todos)
+### GET PaquetesTuristico BY ID (Todos)
 GET {{baseUrl}}/1
 Content-Type: application/json
 # Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 Authorization: Bearer {{loggedCliente.data.token}}
 
-### Edit PaquetesTuristico (Gerente)
+### UPDATE PaquetesTuristico (Gerente)
 PUT {{baseUrl}}/1
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
@@ -42,10 +42,10 @@ Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedCliente.data.token}}
 
 {
-    "duracionEnDias": "7"
+    "duracionEnDias": 7
 }
 
-### Delete PaquetesTuristico (Gerente)
+### DELETE PaquetesTuristico (Gerente)
 DELETE {{baseUrl}}/1
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}

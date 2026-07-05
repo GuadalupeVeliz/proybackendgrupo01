@@ -15,9 +15,9 @@ authController.signUp = async (req, res) => {
   }
 };
 
-authController.signIn = async (req, res) => {
+authController.login = async (req, res) => {
   try {
-    const { token, rol } = await authService.signIn(req.body.correoElectronico, req.body.clave);
+    const { token, rol } = await authService.login(req.body.correoElectronico, req.body.clave);
 
     return res.status(200).json({
       success: true,
@@ -41,18 +41,5 @@ authController.logout = async (req, res) => {
     return res.status(500).json({ success: false, error: error.message });
   }
 };
-
-// authController.googleCallback = async (req, res) => {
-//   try {
-//     const token = authService.generarTokenGoogle(req.user);
-
-//     return res.status(200).json({
-//       mensaje: 'Login exitoso',
-//       token: token,
-//     });
-//   } catch (error) {
-//     return res.status(500).json({ mensaje: 'Error al generar la sesión' });
-//   }
-// };
 
 module.exports = authController;

@@ -9,7 +9,7 @@ empleadoRoutes.use(authMiddleware.authorizeByRole(['Gerente']));
 
 empleadoRoutes.get('/', empleadoController.getEmpleados);
 empleadoRoutes.post('/', empleadoController.createEmpleado);
-empleadoRoutes.get('/:id', empleadoController.getEmpleado);
+empleadoRoutes.get('/:id', empleadoController.getEmpleadoById);
 empleadoRoutes.put('/:id', empleadoController.updateEmpleado);
 empleadoRoutes.delete('/:id', empleadoController.deleteEmpleado);
 

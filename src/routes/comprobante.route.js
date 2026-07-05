@@ -9,48 +9,43 @@ comprobanteRoutes.use(authMiddleware.verifyUserToken);
 comprobanteRoutes.get(
   '/me',
   authMiddleware.authorizeByRole(['Cliente']),
-  comprobanteController.getMyComprobantes
+  comprobanteController.getMyComprobantes,
 );
 comprobanteRoutes.get(
   '/cliente/:clienteId',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
-  comprobanteController.getComprobantesByClienteId
+  comprobanteController.getComprobantesByClienteId,
 );
 comprobanteRoutes.get(
   '/:id/download-pdf',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
-  comprobanteController.downloadComprobantePDF
-);
-comprobanteRoutes.post(
-  '/cancel',
-  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
-  comprobanteController.processCancelacion
+  comprobanteController.downloadComprobantePDF,
 );
 
 comprobanteRoutes.get(
   '/',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
-  comprobanteController.getComprobantes
+  comprobanteController.getComprobantes,
 );
 comprobanteRoutes.post(
   '/',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
-  comprobanteController.createComprobante
+  comprobanteController.createComprobante,
 );
 comprobanteRoutes.get(
   '/:id',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
-  comprobanteController.getComprobanteById
+  comprobanteController.getComprobanteById,
 );
 comprobanteRoutes.put(
   '/:id',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
-  comprobanteController.updateComprobante
+  comprobanteController.updateComprobante,
 );
 comprobanteRoutes.delete(
   '/:id',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
-  comprobanteController.deleteComprobante
+  comprobanteController.deleteComprobante,
 );
 
 module.exports = comprobanteRoutes;

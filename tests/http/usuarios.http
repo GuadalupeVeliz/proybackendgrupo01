@@ -5,14 +5,14 @@
 # @ref loggedRecepcionista
 # @ref loggedCliente
 
-### Get Usuarios
+### GET ALL Usuarios
 GET {{baseUrl}}
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 # Authorization: Bearer {{loggedCliente.data.token}}
 
-### Create Usuario (gerente)
+### CREATE Usuario (gerente)
 POST {{baseUrl}}
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
@@ -27,7 +27,7 @@ Authorization: Bearer {{loggedGerente.data.token}}
     "esGerente": true
 }
 
-### Create Usuario (recepcionista)
+### CREATE Usuario (recepcionista)
 POST {{baseUrl}}
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
@@ -40,7 +40,7 @@ Authorization: Bearer {{loggedGerente.data.token}}
     "legajo": "EMP-0002",
     "sede": "sucursal"
 }
-### Create Usuario (cliente)
+### CREATE Usuario (cliente)
 
 POST {{baseUrl}}
 Content-Type: application/json
@@ -56,14 +56,14 @@ Authorization: Bearer {{loggedGerente.data.token}}
     "telefono": "555-000-1234"
 }
 
-### Get Usuario By ID
+### GET Usuario BY ID
 GET {{baseUrl}}/3
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 # Authorization: Bearer {{loggedCliente.data.token}}
 
-### Edit Usuario
+### UPDATE Usuario
 PUT {{baseUrl}}/3
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
@@ -74,7 +74,7 @@ Authorization: Bearer {{loggedGerente.data.token}}
     "contraseña": "cliente-pass-1"
 }
 
-### Delete Usuario
+### DELETE Usuario
 DELETE {{baseUrl}}/2
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}

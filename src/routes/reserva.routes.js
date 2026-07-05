@@ -9,49 +9,49 @@ reservaRoutes.use(authMiddleware.verifyUserToken);
 reservaRoutes.get(
   '/',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
-  reservaController.getReservas
+  reservaController.getReservas,
 );
 
 reservaRoutes.post(
   '/',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
-  reservaController.createReserva
+  reservaController.createReserva,
 );
 
 reservaRoutes.get(
   '/:id',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
-  reservaController.getReservaById
+  reservaController.getReservaById,
 );
 
 reservaRoutes.put(
   '/:id',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
-  reservaController.updateReserva
+  reservaController.updateReserva,
 );
 
 reservaRoutes.delete(
   '/:id',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
-  reservaController.deleteReserva
+  reservaController.deleteReserva,
 );
 
 reservaRoutes.get(
   '/cliente/:clienteId',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
-  reservaController.getReservasByClienteId
+  reservaController.getReservasByClienteId,
 );
 
 reservaRoutes.put(
   '/checkout/:id',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
-  reservaController.checkoutReserva
+  reservaController.checkoutReserva,
 );
 
 reservaRoutes.put(
   '/cancel/:id',
-  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
-  reservaController.cancelReserva
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
+  reservaController.cancelReserva,
 );
 
 module.exports = reservaRoutes;

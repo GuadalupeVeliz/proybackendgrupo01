@@ -5,7 +5,7 @@ const empleadoController = {};
 empleadoController.createEmpleado = async (req, res) => {
   try {
     const empleado = await empleadoService.addEmpleado(req.body);
-    return res.status(201).json(empleado);
+    return res.status(201).json({ success: true, data: empleado });
   } catch (error) {
     return res.status(400).json({
       mensaje: error.message,
@@ -16,7 +16,7 @@ empleadoController.createEmpleado = async (req, res) => {
 empleadoController.getEmpleados = async (req, res) => {
   try {
     const empleados = await empleadoService.findEmpleados();
-    return res.status(200).json(empleados);
+    return res.status(200).json({ success: true, data: empleados });
   } catch (error) {
     return res.status(500).json({
       mensaje: error.message,
@@ -24,10 +24,10 @@ empleadoController.getEmpleados = async (req, res) => {
   }
 };
 
-empleadoController.getEmpleado = async (req, res) => {
+empleadoController.getEmpleadoById = async (req, res) => {
   try {
-    const empleado = await empleadoService.findEmpleado(req.params.id);
-    return res.status(200).json(empleado);
+    const empleado = await empleadoService.findEmpleadoById(req.params.id);
+    return res.status(200).json({ success: true, data: empleado });
   } catch (error) {
     return res.status(404).json({
       mensaje: error.message,
@@ -37,11 +37,8 @@ empleadoController.getEmpleado = async (req, res) => {
 
 empleadoController.updateEmpleado = async (req, res) => {
   try {
-    const empleado = await empleadoService.editEmpleado(
-      req.params.id,
-      req.body
-    );
-    return res.status(200).json(empleado);
+    const empleado = await empleadoService.editEmpleado(req.params.id, req.body);
+    return res.status(200).json({ success: true, data: empleado });
   } catch (error) {
     return res.status(404).json({
       mensaje: error.message,

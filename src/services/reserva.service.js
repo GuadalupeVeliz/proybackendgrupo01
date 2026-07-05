@@ -1,5 +1,6 @@
 const { Vacante, Reserva, Cliente, PaqueteTuristico, Comprobante } = require('../models');
 const vacanteService = require('./vacante.service');
+const comprobanteService = require('./comprobante.service');
 
 const reservaService = {};
 
@@ -10,49 +11,34 @@ reservaService.addReserva = async (data) => {
   });
 
   if (!existingVacante) {
-    throw new Error('La vacante no encontrada o dada de baja.');
+    throw new Error('Vacante no encontrada o dada de baja.');
   }
 
   const existingCliente = await Cliente.findByPk(data.clienteId);
+
   if (!existingCliente) {
-    throw new Error('Cliente no encontrado o dada de baja.');
+    throw new Error('Cliente no encontrado o dado de baja.');
   }
 
   if (data.cantidadDePersonas <= 0) {
     throw new Error('La cantidad de personas debe ser mayor a 0.');
   }
 
-  // TODO: Buscar un mejor nombre para checkAvailability ya que representa si
-  // existe cupos disponibles, cuantos cupos disponibles quedan y cuantos cupos se solicito.
-  const disponibilidad = await vacanteService.checkAvailability(
+  await vacanteService.actualizarCuposPorReserva(
+    null,
+    null,
     data.vacanteId,
-    data.cantidadDePersonas
+    data.cantidadDePersonas,
   );
 
-  if (!disponibilidad.estaDisponible) {
-    throw new Error(`No quedan cupos disponibles (${disponibilidad.cuposDisponibles})`);
-  }
-
-  const reserva = await Reserva.create(data);
-
-  await vacanteService.decreaseCupoDisponible(data.vacanteId, data.cantidadDePersonas);
-
-  return reserva;
+  return await Reserva.create({ ...data, estado: 'pendiente' });
 };
 
 reservaService.findReservas = async (filters = { eliminado: false }) => {
   return await Reserva.findAll({
     include: [
-      {
-        model: Cliente,
-        as: 'cliente',
-        attributes: { exclude: ['createdAt', 'updatedAt'] },
-      },
-      {
-        model: Vacante,
-        as: 'vacante',
-        attributes: { exclude: ['createdAt', 'updatedAt'] },
-      },
+      { model: Cliente, as: 'cliente', attributes: { exclude: ['createdAt', 'updatedAt'] } },
+      { model: Vacante, as: 'vacante', attributes: { exclude: ['createdAt', 'updatedAt'] } },
     ],
     where: filters,
     order: [['createdAt', 'ASC']],
@@ -62,18 +48,10 @@ reservaService.findReservas = async (filters = { eliminado: false }) => {
 
 reservaService.findReservaById = async (id) => {
   const existingReserva = await Reserva.findOne({
-    where: { id: id, eliminado: false },
+    where: { id, eliminado: false },
     include: [
-      {
-        model: Cliente,
-        as: 'cliente',
-        attributes: { exclude: ['createdAt', 'updatedAt'] },
-      },
-      {
-        model: Vacante,
-        as: 'vacante',
-        attributes: { exclude: ['createdAt', 'updatedAt'] },
-      },
+      { model: Cliente, as: 'cliente', attributes: { exclude: ['createdAt', 'updatedAt'] } },
+      { model: Vacante, as: 'vacante', attributes: { exclude: ['createdAt', 'updatedAt'] } },
     ],
     attributes: { exclude: ['createdAt', 'updatedAt'] },
   });
@@ -89,7 +67,7 @@ reservaService.editReservas = async (id, data) => {
   const existingReserva = await Reserva.findByPk(id);
 
   if (!existingReserva) {
-    throw new Error('Reserva no existe.');
+    throw new Error('Reserva no encontrada o dada de baja.');
   }
 
   if (existingReserva.eliminado) {
@@ -97,54 +75,39 @@ reservaService.editReservas = async (id, data) => {
   }
 
   if (existingReserva.estado === 'cancelada') {
-    throw new Error('No se puede modificar una reserva que ya fue cancelada.');
+    throw new Error('No se puede modificar una reserva cancelada.');
   }
 
   if (data.clienteId) {
-    const existingCliente = await Cliente.findByPk(data.clienteId);
+    const cliente = await Cliente.findByPk(data.clienteId);
 
-    if (!existingCliente) {
-      throw new Error('Cliente no registrado.');
+    if (!cliente) {
+      throw new Error('Cliente no encontrado o dado de baja.');
     }
   }
 
   const newVacanteId = data.vacanteId ?? existingReserva.vacanteId;
-  const newCantidadDePersonas = data.cantidadDePersonas ?? existingReserva.cantidadDePersonas;
+  const newCantidad = data.cantidadDePersonas ?? existingReserva.cantidadDePersonas;
 
   if (data.cantidadDePersonas != null || data.vacanteId != null) {
-    await vacanteService.restoreCupoDisponible(
+    await vacanteService.actualizarCuposPorReserva(
       existingReserva.vacanteId,
-      existingReserva.cantidadDePersonas
-    );
-
-    const disponibilidad = await vacanteService.checkAvailability(
+      existingReserva.cantidadDePersonas,
       newVacanteId,
-      newCantidadDePersonas
+      newCantidad,
     );
-
-    if (!disponibilidad.estaDisponible) {
-      await vacanteService.decreaseCupoDisponible(
-        existingReserva.vacanteId,
-        existingReserva.cantidadDePersonas
-      );
-      throw new Error(
-        `No hay suficientes cupos. Solicitados: ${disponibilidad.cuposSolicitados}, Disponibles: ${disponibilidad.cuposDisponibles}`
-      );
-    }
-
-    await vacanteService.decreaseCupoDisponible(newVacanteId, newCantidadDePersonas);
   }
 
   return await existingReserva.update({
     clienteId: data.clienteId ?? existingReserva.clienteId,
     vacanteId: newVacanteId,
-    cantidadDePersonas: newCantidadDePersonas,
+    cantidadDePersonas: newCantidad,
     fechaDeReservacion: data.fechaDeReservacion ?? existingReserva.fechaDeReservacion,
   });
 };
 
-reservaService.deleteReserva = async (reservaId) => {
-  const existingReserva = await Reserva.findByPk(reservaId);
+reservaService.deleteReserva = async (id) => {
+  const existingReserva = await Reserva.findByPk(id);
 
   if (!existingReserva) {
     throw new Error('Reserva no encontrada o dada de baja.');
@@ -153,42 +116,23 @@ reservaService.deleteReserva = async (reservaId) => {
   if (existingReserva.eliminado) {
     throw new Error('La reserva ya fue eliminada previamente.');
   }
-
-  if (existingReserva.estado !== 'cancelada') {
-    await vacanteService.restoreCupoDisponible(
-      existingReserva.vacanteId,
-      existingReserva.cantidadDePersonas
-    );
-  }
-
-  return await existingReserva.update({
-    estado: 'cancelada',
-    eliminado: true,
-  });
+  return await existingReserva.update({ eliminado: true });
 };
 
 reservaService.findReservasByClienteId = async (id) => {
   return await Reserva.findAll({
     where: { clienteId: id, eliminado: false },
     include: [
-      {
-        model: Cliente,
-        as: 'cliente',
-        attributes: { exclude: ['createdAt', 'updatedAt'] },
-      },
-      {
-        model: Vacante,
-        as: 'vacante',
-        attributes: { exclude: ['createdAt', 'updatedAt'] },
-      },
+      { model: Cliente, as: 'cliente', attributes: { exclude: ['createdAt', 'updatedAt'] } },
+      { model: Vacante, as: 'vacante', attributes: { exclude: ['createdAt', 'updatedAt'] } },
     ],
     attributes: { exclude: ['createdAt', 'updatedAt'] },
   });
 };
 
 reservaService.checkoutReserva = async (id, data) => {
-  const existingReserva = await Reserva.findOne({
-    where: { id: id, eliminado: false },
+  const reserva = await Reserva.findOne({
+    where: { id, eliminado: false },
     include: {
       model: Vacante,
       as: 'vacante',
@@ -196,75 +140,57 @@ reservaService.checkoutReserva = async (id, data) => {
     },
   });
 
-  if (!existingReserva) {
+  if (!reserva) {
     throw new Error('Reserva no encontrada o dada de baja.');
   }
 
-  if (existingReserva.estado === 'confirmada') {
+  if (reserva.estado === 'confirmada') {
     throw new Error('La reserva ya está confirmada.');
   }
 
-  if (existingReserva.estado === 'cancelada') {
-    throw new Error('No se puede confirmar una reserva que fue cancelada.');
+  if (reserva.estado === 'cancelada') {
+    throw new Error('No se puede confirmar una reserva cancelada.');
   }
 
   if (!data.montoPagado) {
     throw new Error('Debe ingresar el monto a pagar para confirmar.');
   }
 
-  // TODO: Representar mejor el computo del precio total a pagar; cantidad de personas por el precio base y
-  // el monto que se quiere abonar.
-  const precioPerCliente = parseFloat(existingReserva.vacante.paqueteTuristico.precio);
-  const montoAPagar = precioPerCliente * existingReserva.cantidadDePersonas;
+  const precioUnitario = parseFloat(reserva.vacante.paqueteTuristico.precioBase);
+  const montoTotal = precioUnitario * reserva.cantidadDePersonas;
   const montoPagado = parseFloat(data.montoPagado);
 
   if (Number.isNaN(montoPagado)) {
     throw new Error('El monto ingresado no es válido.');
   }
 
-  if (montoPagado < montoAPagar) {
-    throw new Error(
-      `Monto a pagar ingresado insuficiente. El costo total para ${existingReserva.cantidadDePersonas} personas es de $${montoAPagar.toFixed(2)}.`
-    );
+  if (montoPagado < montoTotal) {
+    throw new Error(`Monto insuficiente. Total: $${montoTotal.toFixed(2)}.`);
   }
 
-  const updatedReserva = await existingReserva.update({
-    estado: 'confirmada',
-    montoPagado: data.montoPagado,
-  });
+  await reserva.update({ estado: 'confirmada', montoPagado });
 
-  const existingComprobante = await Comprobante.findOne({
-    where: { reservaId: existingReserva.id },
-  });
+  await comprobanteService.addComprobanteReserva(reserva.id);
 
-  if (!existingComprobante) {
-    await Comprobante.create({
-      numero: `FAC-${existingReserva.id}-${Date.now()}`,
-      tipo: 'reserva',
-      reservaId: existingReserva.id,
-    });
-  }
-
-  return updatedReserva;
+  return reserva;
 };
 
 reservaService.cancelReserva = async (id) => {
-  const existingReserva = await Reserva.findByPk(id);
+  const reserva = await Reserva.findByPk(id);
 
-  if (!existingReserva) {
+  if (!reserva) {
     throw new Error('Reserva no encontrada o dada de baja.');
   }
-
-  if (existingReserva.estado === 'cancelada') {
+  if (reserva.estado === 'cancelada') {
     throw new Error('La reserva ya se encuentra cancelada.');
   }
 
-  await vacanteService.restoreCupoDisponible(
-    existingReserva.vacanteId,
-    existingReserva.cantidadDePersonas
-  );
+  await vacanteService.restoreCupoDisponible(reserva.vacanteId, reserva.cantidadDePersonas);
+  await reserva.update({ estado: 'cancelada' });
 
-  return await existingReserva.update({ estado: 'cancelada' });
+  await comprobanteService.addComprobanteCancelacion(reserva.id);
+
+  return reserva;
 };
 
 module.exports = reservaService;

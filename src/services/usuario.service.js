@@ -7,15 +7,16 @@ const clienteService = require('../services/cliente.service');
 const usuarioService = {};
 
 usuarioService.addUsuario = async (data) => {
-  const existingUsuario = await Usuario.findOne({
+  const existingCorreoElectronico = await Usuario.findOne({
     where: {
       correoElectronico: data.correoElectronico,
+      eliminado: false,
     },
   });
 
-  if (existingUsuario) {
+  if (existingCorreoElectronico) {
     throw new Error(
-      'El correo electrónico ya está registrado (puede que pertenezca a un usuario dado de baja).'
+      'El correo electrónico ya está registrado (puede que pertenezca a un usuario dado de baja).',
     );
   }
 
@@ -85,7 +86,7 @@ usuarioService.editUsuario = async (id, updates) => {
 
     if (existingCorreoElectronico) {
       throw new Error(
-        'El correo electrónico ya está registrado (puede que pertenezca a un usuario dado de baja).'
+        'El correo electrónico ya está registrado (puede que pertenezca a un usuario dado de baja).',
       );
     }
   }

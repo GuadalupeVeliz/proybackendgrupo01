@@ -5,32 +5,19 @@
 # @ref loggedRecepcionista
 # @ref loggedCliente
 
-### Get Clientes
+### GET ALL Clientes
 GET {{baseUrl}}
 Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.token}}
-Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
+# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
 
-### Create Cliente
+### CREATE Cliente
 POST {{baseUrl}}
 Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.token}}
-Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
-
-{
-    "dni": "0000001",
-    "nombreCompleto": "Xenon Air",
-    "telefono": "555-000-1234"
-}
-
-### Create Cliente
-POST {{baseUrl}}
-Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.token}}
-Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
+# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
 
 {
     "dni": "0000002",
@@ -38,28 +25,28 @@ Authorization: Bearer {{loggedRecepcionista.token}}
     "telefono": "555-000-9876"
 }
 
-### Get Cliente By ID
+### GET Cliente BY ID
 GET {{baseUrl}}/2
 Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.token}}
-Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
+# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
 
-### Edit Cliente
+### UPDATE Cliente
 PUT {{baseUrl}}/2
 Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.token}}
-Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
+# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
 
 {
     "dni": "0000003",
     "telefono": "555-001-1234"
 }
 
-### Delete Cliente
+### DELETE Cliente
 DELETE {{baseUrl}}/2
 Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.token}}
-Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
+# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}

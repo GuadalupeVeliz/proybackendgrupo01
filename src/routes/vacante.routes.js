@@ -9,27 +9,27 @@ vacanteRoutes.use(authMiddleware.verifyUserToken);
 vacanteRoutes.get(
   '/',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
-  vacanteController.getVacantes
+  vacanteController.getVacantes,
 );
 vacanteRoutes.post(
   '/',
   authMiddleware.authorizeByRole(['Gerente']),
-  vacanteController.createVacante
+  vacanteController.createVacante,
 );
 vacanteRoutes.get(
   '/:id',
   authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
-  vacanteController.getVacante
+  vacanteController.getVacante,
 );
 vacanteRoutes.put(
   '/:id',
   authMiddleware.authorizeByRole(['Gerente']),
-  vacanteController.updateVacante
+  vacanteController.updateVacante,
 );
 vacanteRoutes.delete(
   '/:id',
   authMiddleware.authorizeByRole(['Gerente']),
-  vacanteController.deleteVacante
+  vacanteController.deleteVacante,
 );
 
 module.exports = vacanteRoutes;

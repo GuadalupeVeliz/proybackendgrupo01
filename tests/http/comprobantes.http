@@ -5,46 +5,35 @@
 # @ref loggedRecepcionista
 # @ref loggedCliente
 
-### Get My Comprobantes (Cliente)
+### GET ALL OWN (cliente) Comprobantes (Cliente)
 GET {{baseUrl}}/me
 Content-Type: application/json
 # Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 Authorization: Bearer {{loggedCliente.data.token}}
 
-### Get Comprobantes By Cliente (Cliente)
+### GET ALL Comprobantes BY Cliente ID (Cliente)
 GET {{baseUrl}}/cliente/1
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 # Authorization: Bearer {{loggedCliente.data.token}}
 
-### Download Comprobantes PDF (Cliente)
+### DOWNLOAD Comprobantes PDF (Cliente)
 GET {{baseUrl}}/1/download-pdf
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 # Authorization: Bearer {{loggedCliente.data.token}}
 
-### Cancel Comprobante (Gerente y Recepcionista)
-POST {{baseUrl}}/cancel
-Content-Type: application/json
-Authorization: Bearer {{loggedGerente.data.token}}
-# Authorization: Bearer {{loggedRecepcionista.data.token}}
-# Authorization: Bearer {{loggedCliente.data.token}}
-
-{
-    "reservaId": 1
-}
-
-### Get Comprobantes
+### GET ALL Comprobantes
 GET {{baseUrl}}
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 # Authorization: Bearer {{loggedCliente.data.token}}
 
-### Create Comprobante
+### CREATE Comprobante
 POST {{baseUrl}}
 Content-Type: application/json
 # Authorization: Bearer {{loggedGerente.data.token}}
@@ -54,18 +43,18 @@ Authorization: Bearer {{loggedCliente.data.token}}
 {
     "reservaId": 2,
     "numero": "FAC-MANUAL-2026-001",
-    "fechaEmision": "2026-07-02T05:30:00.000Z",
+    "fechaDeEmision": "2026-07-02",
     "tipo": "reserva"
 }
 
-### Get Comprobante By ID
-GET {{baseUrl}}/2
+### GET Comprobante BY ID
+GET {{baseUrl}}/1
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 # Authorization: Bearer {{loggedCliente.data.token}}
 
-### Edit Comprobante
+### UPDATE Comprobante
 PUT {{baseUrl}}/2
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
@@ -77,7 +66,7 @@ Authorization: Bearer {{loggedGerente.data.token}}
     "tipo": "reembolso"
 }
 
-### Delete Comprobante
+### DELETE Comprobante
 DELETE {{baseUrl}}/1
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}

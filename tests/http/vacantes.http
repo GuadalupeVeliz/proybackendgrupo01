@@ -5,14 +5,14 @@
 # @ref loggedRecepcionista
 # @ref loggedCliente
 
-### Get Vacantes (Todos)
+### GET ALL Vacantes (Todos)
 GET {{baseUrl}}
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 # Authorization: Bearer {{loggedCliente.data.token}}
 
-### Create Vacante (Gerente)
+### CREATE Vacante (Gerente)
 POST {{baseUrl}}
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
@@ -25,14 +25,14 @@ Authorization: Bearer {{loggedGerente.data.token}}
     "cupoTotal": 10
 }
 
-### Get Vacante By ID (Todos)
+### GET Vacante BY ID (Todos)
 GET {{baseUrl}}/1
 Content-Type: application/json
 # Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
 Authorization: Bearer {{loggedCliente.data.token}}
 
-### Edit Vacante (Gerente)
+### UPDATE Vacante (Gerente)
 PUT {{baseUrl}}/1
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}
@@ -44,7 +44,7 @@ Authorization: Bearer {{loggedGerente.data.token}}
   "fechaDeSalida": "2026-07-15"
 }
 
-### Delete Vacante (Gerente)
+### DELETE Vacante (Gerente)
 DELETE {{baseUrl}}/1
 Content-Type: application/json
 Authorization: Bearer {{loggedGerente.data.token}}

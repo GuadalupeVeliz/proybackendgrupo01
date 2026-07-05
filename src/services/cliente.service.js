@@ -3,30 +3,30 @@ const { Op } = require('sequelize');
 
 const clienteService = {};
 
-clienteService.addCliente = async (datosCliente) => {
-  const cliente = await Cliente.findOne({
+clienteService.addCliente = async (data) => {
+  const existingDni = await Cliente.findOne({
     where: {
-      dni: datosCliente.dni,
+      dni: data.dni,
       activo: true,
     },
   });
 
-  if (cliente) {
+  if (existingDni) {
     throw new Error('El dni se encuentra registrado.');
   }
 
-  return await Cliente.create(datosCliente);
+  return await Cliente.create(data);
 };
 
-clienteService.findClientes = async () => {
+clienteService.findClientes = async (filters = { eliminado: false }) => {
   return await Cliente.findAll({
-    where: { activo: true },
+    where: filters,
   });
 };
 
-clienteService.findCliente = async (clienteId) => {
+clienteService.findClienteById = async (id) => {
   const cliente = await Cliente.findOne({
-    where: { id: clienteId, activo: true },
+    where: { id: id, eliminado: false },
   });
 
   if (!cliente) {
@@ -36,42 +36,42 @@ clienteService.findCliente = async (clienteId) => {
   return cliente;
 };
 
-clienteService.editCliente = async (clienteId, datosCliente) => {
-  const cliente = await Cliente.findOne({
-    where: { id: clienteId, activo: true },
+clienteService.editCliente = async (id, updates) => {
+  const existingCliente = await Cliente.findOne({
+    where: { id: id, eliminado: false },
   });
 
-  if (!cliente) {
+  if (!existingCliente) {
     throw new Error('Cliente no encontrado o dado de baja.');
   }
 
-  if (datosCliente.dni) {
-    const duplicatedDni = await Cliente.findOne({
+  if (updates.dni) {
+    const existingDni = await Cliente.findOne({
       where: {
-        dni: datosCliente.dni,
-        activo: true,
-        id: { [Op.ne]: clienteId },
+        dni: updates.dni,
+        eliminado: false,
+        id: { [Op.ne]: id },
       },
     });
 
-    if (duplicatedDni) {
+    if (existingDni) {
       throw new Error('El DNI ya se encuentra registrado por otro cliente.');
     }
   }
 
-  return await cliente.update(datosCliente);
+  return await existingCliente.update(updates);
 };
 
-clienteService.deleteCliente = async (clienteId) => {
-  const cliente = await Cliente.findOne({
-    where: { id: clienteId, activo: true },
+clienteService.deleteCliente = async (id) => {
+  const existingCliente = await Cliente.findOne({
+    where: { id: id, eliminado: false },
   });
 
-  if (!cliente) {
+  if (!existingCliente) {
     throw new Error('Cliente no encontrado o ya eliminado.');
   }
 
-  return await cliente.update({ activo: false });
+  return await existingCliente.update({ eliminado: true });
 };
 
 module.exports = clienteService;
