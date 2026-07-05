@@ -17,16 +17,16 @@ const Cliente = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    activo: {
+    eliminado: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true,
+      defaultValue: false,
       allowNull: false,
     },
   },
   {
     tableName: 'clientes',
     timestamps: true,
-  }
+  },
 );
 
 module.exports = Cliente;

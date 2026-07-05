@@ -5,44 +5,21 @@
 # @ref loggedRecepcionista
 # @ref loggedCliente
 
-### Get Perfiles (Todos)
+### GET OWN Perfil (Todos)
 GET {{baseUrl}}
 Content-Type: application/json
-Authorization: Bearer {{loggedGerente.token}}
-# Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
 
-### Edit Perfil (Usuario)
+### UPDATE OWN Perfil (Usuario)
 PUT {{baseUrl}}
 Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.token}}
-# Authorization: Bearer {{loggedRecepcionista.token}}
-Authorization: Bearer {{loggedCliente.token}}
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
 
 {
     "correoElectronico": "nuevo-correo@world.com",
-    "contrasena": "clave-super-segura-2026"
-}
-
-### Edit Perfil (Empleado)
-PUT {{baseUrl}}
-Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.token}}
-Authorization: Bearer {{loggedRecepcionista.token}}
-# Authorization: Bearer {{loggedCliente.token}}
-
-{
-    "sede": "central"
-}
-
-### Edit Perfil (Cliente)
-PUT {{baseUrl}}
-Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.token}}
-# Authorization: Bearer {{loggedRecepcionista.token}}
-Authorization: Bearer {{loggedCliente.token}}
-
-{
-    "telefono": "555-000-9876",
-    "nombreCompleto": "Luna Bella"
+    "clave": "super-clave-segura"
 }

@@ -18,16 +18,16 @@ const Empleado = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    activo: {
+    eliminado: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true,
+      defaultValue: false,
       allowNull: false,
     },
   },
   {
     tableName: 'empleados',
     timestamps: true,
-  }
+  },
 );
 
 module.exports = Empleado;

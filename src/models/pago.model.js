@@ -31,16 +31,16 @@ const Pago = sequelize.define(
       defaultValue: 'pendiente',
       allowNull: false,
     },
-    activo: {
+    eliminado: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true,
+      defaultValue: false,
       allowNull: false,
     },
   },
   {
     tableName: 'pagos',
     timestamps: true,
-  }
+  },
 );
 
 module.exports = Pago;

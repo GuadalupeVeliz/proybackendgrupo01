@@ -4,87 +4,83 @@ const bcrypt = require('bcryptjs');
 
 const perfilService = {};
 
-perfilService.obtenerPerfilConDetalles = async (usuarioId) => {
-  const usuario = await Usuario.findOne({
-    where: { id: usuarioId, activo: true },
-    attributes: { exclude: ['contrasena'] },
+perfilService.findPerfil = async (id) => {
+  const existingUsuario = await Usuario.findOne({
+    where: { id: id, eliminado: false },
+    attributes: { exclude: ['clave'] },
     include: [
       { model: Cliente, as: 'cliente' },
       { model: Empleado, as: 'empleado' },
     ],
   });
 
-  if (!usuario) {
+  if (!existingUsuario) {
     throw new Error('Usuario no encontrado.');
   }
 
-  return usuario;
+  return existingUsuario;
 };
 
-perfilService.actualizarPerfilSeguro = async (usuarioId, datosEdicion) => {
-  const usuario = await Usuario.findOne({
-    where: { id: usuarioId, activo: true },
+perfilService.editPerfil = async (id, updates) => {
+  const existingUsuario = await Usuario.findOne({
+    where: { id: id, eliminado: false },
     include: [
       { model: Cliente, as: 'cliente' },
       { model: Empleado, as: 'empleado' },
     ],
   });
 
-  if (!usuario) {
+  if (!existingUsuario) {
     throw new Error('Usuario no encontrado.');
   }
 
-  const datosMapeados = {};
+  const mappedData = {};
 
-  if (datosEdicion.correoElectronico) {
-    const correoDuplicado = await Usuario.findOne({
+  if (updates.correoElectronico) {
+    const existingCorreoElectronico = await Usuario.findOne({
       where: {
-        correoElectronico: datosEdicion.correoElectronico,
-        activo: true,
-        id: { [Op.ne]: usuarioId },
+        correoElectronico: updates.correoElectronico,
+        eliminado: false,
+        id: { [Op.ne]: id },
       },
     });
 
-    if (correoDuplicado) {
+    if (existingCorreoElectronico) {
       throw new Error('El correo electrónico ya se encuentra registrado.');
     }
-    datosMapeados.correoElectronico = datosEdicion.correoElectronico;
+    mappedData.correoElectronico = updates.correoElectronico;
   }
 
-  if (datosEdicion.contrasena) {
+  if (updates.contrasena) {
     const salt = await bcrypt.genSalt(10);
-    datosMapeados.contrasena = await bcrypt.hash(datosEdicion.contrasena, salt);
+    mappedData.contrasena = await bcrypt.hash(updates.contrasena, salt);
   }
 
-  if (Object.keys(datosMapeados).length > 0) {
-    await usuario.update(datosMapeados);
+  if (Object.keys(mappedData).length > 0) {
+    await existingUsuario.update(mappedData);
   }
 
-  if (datosEdicion.telefono || datosEdicion.nombreCompleto) {
-    if (!usuario.cliente) {
-      throw new Error(
-        'El usuario no es un cliente, no puede actualizar datos de cliente.'
-      );
+  if (updates.telefono || updates.nombreCompleto) {
+    if (!existingUsuario.cliente) {
+      throw new Error('El usuario no es un cliente, no puede actualizar datos de cliente.');
     }
-    await usuario.cliente.update({
-      telefono: datosEdicion.telefono ?? usuario.cliente.telefono,
-      nombreCompleto:
-        datosEdicion.nombreCompleto ?? usuario.cliente.nombreCompleto,
+    await existingUsuario.cliente.update({
+      telefono: updates.telefono ?? existingUsuario.cliente.telefono,
+      nombreCompleto: updates.nombreCompleto ?? existingUsuario.cliente.nombreCompleto,
     });
   }
 
-  if (datosEdicion.sede) {
-    if (!usuario.empleado) {
-      throw new Error(
-        'El usuario no es un empleado, no puede actualizar datos de empleado.'
-      );
+  if (updates.sede) {
+    if (!existingUsuario.empleado) {
+      throw new Error('El usuario no es un empleado, no puede actualizar datos de empleado.');
     }
-    await usuario.empleado.update({
-      sede: datosEdicion.sede ?? usuario.empleado.sede,
+
+    await existingUsuario.empleado.update({
+      sede: updates.sede ?? existingUsuario.empleado.sede,
     });
   }
 
-  return await perfilService.obtenerPerfilConDetalles(usuarioId);
+  return await perfilService.findPerfil(id);
 };
 
 module.exports = perfilService;
