@@ -7,7 +7,7 @@ clienteService.addCliente = async (data) => {
   const existingDni = await Cliente.findOne({
     where: {
       dni: data.dni,
-      activo: true,
+      eliminado: false,
     },
   });
 

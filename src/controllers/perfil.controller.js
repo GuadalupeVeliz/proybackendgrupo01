@@ -4,27 +4,19 @@ const perfilController = {};
 
 perfilController.getPerfil = async (req, res) => {
   try {
-    const usuarioId = req.usuarioLogged.id;
-    const perfil = await perfilService.obtenerPerfilConDetalles(usuarioId);
-    return res.status(200).json(perfil);
+    const perfil = await perfilService.findPerfil(req.usuarioLogged.id);
+    return res.status(200).json({ success: true, data: perfil });
   } catch (error) {
-    return res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
 perfilController.updatePerfil = async (req, res) => {
   try {
-    const usuarioId = req.usuarioLogged.id;
-    const perfilActualizado = await perfilService.actualizarPerfilSeguro(
-      usuarioId,
-      req.body
-    );
-    return res.status(200).json({
-      mensaje: 'Perfil actualizado correctamente.',
-      perfil: perfilActualizado,
-    });
+    const perfil = await perfilService.editPerfil(req.usuarioLogged.id, req.body);
+    return res.status(200).json({ success: true, data: perfil });
   } catch (error) {
-    return res.status(400).json({ mensaje: error.message });
+    return res.status(400).json({ success: false, error: error.message });
   }
 };
 
