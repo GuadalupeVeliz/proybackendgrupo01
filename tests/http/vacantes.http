@@ -1,0 +1,52 @@
+# vacantes.http
+@baseUrl=http://localhost:3000/api/v1/vacantes
+# @import ./auth.http
+# @ref loggedGerente
+# @ref loggedRecepcionista
+# @ref loggedCliente
+
+### Get Vacantes (Todos)
+GET {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### Create Vacante (Gerente)
+POST {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "paqueteTuristicoId": 1,
+    "fechaDeSalida": "2026-08-15",
+    "cupoTotal": 10
+}
+
+### Get Vacante By ID (Todos)
+GET {{baseUrl}}/1
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+Authorization: Bearer {{loggedCliente.data.token}}
+
+### Edit Vacante (Gerente)
+PUT {{baseUrl}}/1
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+  "cupoTotal": 10,
+  "fechaDeSalida": "2026-07-15"
+}
+
+### Delete Vacante (Gerente)
+DELETE {{baseUrl}}/1
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}

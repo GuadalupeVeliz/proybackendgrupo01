@@ -4,8 +4,8 @@ const authMiddleware = require('../middlewares/auth.middleware');
 
 const empleadoRoutes = express.Router();
 
-empleadoRoutes.use(authMiddleware.verifyToken);
-empleadoRoutes.use(authMiddleware.authorize(['Gerente']));
+empleadoRoutes.use(authMiddleware.verifyUserToken);
+empleadoRoutes.use(authMiddleware.authorizeByRole(['Gerente']));
 
 empleadoRoutes.get('/', empleadoController.getEmpleados);
 empleadoRoutes.post('/', empleadoController.createEmpleado);

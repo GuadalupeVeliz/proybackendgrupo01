@@ -4,31 +4,31 @@ const authMiddleware = require('../middlewares/auth.middleware');
 
 const paqueteTuristicoRoutes = express.Router();
 
-paqueteTuristicoRoutes.use(authMiddleware.verifyToken);
+paqueteTuristicoRoutes.use(authMiddleware.verifyUserToken);
 
 paqueteTuristicoRoutes.get(
   '/',
-  authMiddleware.authorize(['Gerente', 'Recepcionista', 'Cliente']),
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
   paqueteTuristicoController.getPaquetesTuristicos
 );
 paqueteTuristicoRoutes.post(
   '/',
-  authMiddleware.authorize(['Gerente']),
+  authMiddleware.authorizeByRole(['Gerente']),
   paqueteTuristicoController.createPaqueteTuristico
 );
 paqueteTuristicoRoutes.get(
   '/:id',
-  authMiddleware.authorize(['Gerente', 'Recepcionista', 'Cliente']),
-  paqueteTuristicoController.getPaqueteTuristico
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
+  paqueteTuristicoController.getPaqueteTuristicoById
 );
 paqueteTuristicoRoutes.put(
   '/:id',
-  authMiddleware.authorize(['Gerente']),
+  authMiddleware.authorizeByRole(['Gerente']),
   paqueteTuristicoController.updatePaqueteTuristico
 );
 paqueteTuristicoRoutes.delete(
   '/:id',
-  authMiddleware.authorize(['Gerente']),
+  authMiddleware.authorizeByRole(['Gerente']),
   paqueteTuristicoController.deletePaqueteTuristico
 );
 

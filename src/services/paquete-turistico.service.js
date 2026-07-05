@@ -3,104 +3,100 @@ const { Op } = require('sequelize');
 
 const paqueteTuristicoService = {};
 
-paqueteTuristicoService.addPaqueteTuristico = async (datosPaqueteTuristico) => {
-  const paqueteTuristico = await PaqueteTuristico.findOne({
-    where: {
-      nombre: datosPaqueteTuristico.nombre,
-    },
+paqueteTuristicoService.addPaqueteTuristico = async (data) => {
+  const existingPaqueteTuristico = await PaqueteTuristico.findOne({
+    where: { nombre: data.nombre },
   });
 
-  if (paqueteTuristico) {
+  if (existingPaqueteTuristico) {
     throw new Error(
-      'El nombre ya está registrado (puede que pertenezca a un paquete dado de baja).'
+      'El nombre ya está registrado (puede que pertenezca a un paquete turístico dado de baja).'
     );
   }
 
-  return await PaqueteTuristico.create(datosPaqueteTuristico);
+  return await PaqueteTuristico.create(data);
 };
 
-paqueteTuristicoService.findPaquetesTuristicos = async () => {
-  return await PaqueteTuristico.findAll({
-    where: { activo: true },
-    include: {
-      model: Vacante,
-      as: 'vacantes',
-    },
-  });
-};
-
-paqueteTuristicoService.findPaqueteTuristico = async (paqueteTuristicoId) => {
-  const paqueteTuristico = await PaqueteTuristico.findOne({
-    where: { id: paqueteTuristicoId, activo: true },
-  });
-
-  if (!paqueteTuristico) {
-    throw new Error('Paquete no encontrado o dado de baja.');
-  }
-
-  return paqueteTuristico;
-};
-
-paqueteTuristicoService.editPaqueteTuristico = async (
-  paqueteTuristicoId,
-  datosPaqueteTuristico
+paqueteTuristicoService.findPaquetesTuristicos = async (
+  filters = { estado: 'disponible', eliminado: false }
 ) => {
-  const paqueteTuristico = await PaqueteTuristico.findOne({
-    where: { id: paqueteTuristicoId, activo: true },
+  return await PaqueteTuristico.findAll({
+    where: filters,
+    include: { model: Vacante, as: 'vacantes' },
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
+  });
+};
+
+paqueteTuristicoService.findPaqueteTuristicoById = async (id) => {
+  const existingPaqueteTuristico = await PaqueteTuristico.findOne({
+    where: { id: id, estado: 'disponible', eliminado: false },
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
   });
 
-  if (!paqueteTuristico) {
-    throw new Error('Paquete no encontrado o dado de baja.');
+  if (!existingPaqueteTuristico) {
+    throw new Error('Paquete turístico no encontrado, no disponible o dado de baja.');
   }
 
-  if (
-    datosPaqueteTuristico.duracionDias != null &&
-    datosPaqueteTuristico.duracionDias !== paqueteTuristico.duracionDias
-  ) {
-    const vacanteConReservas = await Vacante.findOne({
+  return existingPaqueteTuristico;
+};
+
+paqueteTuristicoService.editPaqueteTuristico = async (id, updates) => {
+  const existingPaqueteTuristico = await PaqueteTuristico.findOne({
+    where: { id: id, estado: 'disponible', eliminado: false },
+  });
+
+  if (!existingPaqueteTuristico) {
+    throw new Error('Paquete turístico no encontrado, no disponible o dado de baja.');
+  }
+
+  const duracionEnDiasChanged = updates.duracionEnDias !== existingPaqueteTuristico.duracionDias;
+
+  if (updates.duracionEnDias != null && duracionEnDiasChanged) {
+    const vacanteAssociated = await Vacante.findOne({
+      where: { paqueteTuristicoId: id, estado: 'disponible', eliminado: false },
+    });
+
+    if (vacanteAssociated) {
+      const vacanteHasReservas = vacanteAssociated.cupoDisponible < vacanteAssociated.cupoTotal;
+
+      if (vacanteHasReservas) {
+        throw new Error(
+          'No se puede modificar la duración del paquete porque ya existen reservas asociadas.'
+        );
+      }
+    }
+  }
+
+  if (updates.nombre) {
+    const existingNombre = await PaqueteTuristico.findOne({
       where: {
-        paqueteTuristicoId,
-        activo: true,
+        nombre: updates.nombre,
+        estado: 'disponible',
+        eliminado: false,
+        id: { [Op.ne]: id },
       },
     });
 
-    if (
-      vacanteConReservas &&
-      vacanteConReservas.cupoDisponible < vacanteConReservas.cupoTotal
-    ) {
+    if (existingNombre) {
       throw new Error(
-        'No se puede modificar la duración del paquete porque ya existen reservas asociadas.'
+        'El nombre ya está registrado (puede que pertenezca a un paquete turístico dado de baja).'
       );
     }
   }
 
-  if (datosPaqueteTuristico.nombre) {
-    const nombreDuplicado = await PaqueteTuristico.findOne({
-      where: {
-        nombre: datosPaqueteTuristico.nombre,
-        activo: true,
-        id: { [Op.ne]: paqueteTuristicoId },
-      },
-    });
-
-    if (nombreDuplicado) {
-      throw new Error('El nombre ya está registrado.');
-    }
-  }
-
-  return await paqueteTuristico.update(datosPaqueteTuristico);
+  return await existingPaqueteTuristico.update(updates);
 };
 
-paqueteTuristicoService.deletePaqueteTuristico = async (paqueteTuristicoId) => {
-  const paqueteTuristico = await PaqueteTuristico.findOne({
-    where: { id: paqueteTuristicoId, activo: true },
+paqueteTuristicoService.deletePaqueteTuristico = async (id) => {
+  const existingPaqueteTuristico = await PaqueteTuristico.findOne({
+    where: { id: id, estado: 'disponible', eliminado: false },
   });
 
-  if (!paqueteTuristico) {
-    throw new Error('Paquete no encontrado o ya eliminado.');
+  if (!existingPaqueteTuristico) {
+    throw new Error('Paquete no encontrado, no disponible o dado de baja.');
   }
 
-  return await paqueteTuristico.update({ activo: false });
+  return await existingPaqueteTuristico.update({ estado: 'disponible', eliminado: true });
 };
 
 module.exports = paqueteTuristicoService;

@@ -1,0 +1,85 @@
+# comprobantes.http
+@baseUrl=http://localhost:3000/api/v1/comprobantes
+# @import ./auth.http
+# @ref loggedGerente
+# @ref loggedRecepcionista
+# @ref loggedCliente
+
+### Get My Comprobantes (Cliente)
+GET {{baseUrl}}/me
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+Authorization: Bearer {{loggedCliente.data.token}}
+
+### Get Comprobantes By Cliente (Cliente)
+GET {{baseUrl}}/cliente/1
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### Download Comprobantes PDF (Cliente)
+GET {{baseUrl}}/1/download-pdf
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### Cancel Comprobante (Gerente y Recepcionista)
+POST {{baseUrl}}/cancel
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "reservaId": 1
+}
+
+### Get Comprobantes
+GET {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### Create Comprobante
+POST {{baseUrl}}
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "reservaId": 2,
+    "numero": "FAC-MANUAL-2026-001",
+    "fechaEmision": "2026-07-02T05:30:00.000Z",
+    "tipo": "reserva"
+}
+
+### Get Comprobante By ID
+GET {{baseUrl}}/2
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### Edit Comprobante
+PUT {{baseUrl}}/2
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "numero": "FAC-MANUAL-MODIFICADO",
+    "tipo": "reembolso"
+}
+
+### Delete Comprobante
+DELETE {{baseUrl}}/1
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}

@@ -6,39 +6,39 @@ const pagoRoutes = express.Router();
 
 pagoRoutes.post(
   '/checkout-session',
-  authMiddleware.verifyToken,
-  authMiddleware.authorize(['Gerente', 'Recepcionista', 'Cliente']),
+  authMiddleware.verifyUserToken,
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
   pagoController.checkoutSession
 );
 pagoRoutes.post('/webhook', pagoController.webhook);
 pagoRoutes.get(
   '/',
-  authMiddleware.verifyToken,
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
+  authMiddleware.verifyUserToken,
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
   pagoController.getPagos
 );
 pagoRoutes.post(
   '/',
-  authMiddleware.verifyToken,
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
+  authMiddleware.verifyUserToken,
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
   pagoController.createPago
 );
 pagoRoutes.get(
   '/:id',
-  authMiddleware.verifyToken,
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
+  authMiddleware.verifyUserToken,
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
   pagoController.getPago
 );
 pagoRoutes.put(
   '/:id',
-  authMiddleware.verifyToken,
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
+  authMiddleware.verifyUserToken,
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
   pagoController.updatePago
 );
 pagoRoutes.delete(
   '/:id',
-  authMiddleware.verifyToken,
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
+  authMiddleware.verifyUserToken,
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
   pagoController.deletePago
 );
 

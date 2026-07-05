@@ -1,16 +1,11 @@
-const {
-  Comprobante,
-  Reserva,
-  Cliente,
-  Vacante,
-  PaqueteTuristico,
-} = require('../models');
+const { Comprobante, Reserva, Cliente, Vacante, PaqueteTuristico } = require('../models');
 
 const vacanteService = require('./vacante.service');
 
 const comprobanteService = {};
 
-comprobanteService.findComprobantesByCliente = async (clienteId) => {
+// TODO: Revisar si estos 3 métodos son necesarios y funcionan correctamente.
+comprobanteService.findComprobantesByClienteId = async (clienteId) => {
   if (!clienteId) {
     throw new Error('El ID del cliente es requerido.');
   }
@@ -86,14 +81,11 @@ comprobanteService.processCancelacion = async (reservaId) => {
 
   await reserva.update({ estado: 'cancelada' });
 
-  await vacanteService.restaurarCupo(
-    reserva.vacanteId,
-    reserva.cantidadPersonas
-  );
+  await vacanteService.restaurarCupo(reserva.vacanteId, reserva.cantidadPersonas);
 
   const comprobante = await Comprobante.create({
     numero: `CAN-${reserva.id}-${Date.now()}`,
-    fechaEmision: new Date(),
+    fechaDeEmision: new Date(),
     tipo: 'cancelacion',
     reservaId: reservaId,
   });
@@ -109,7 +101,7 @@ comprobanteService.findComprobantes = async () => {
   });
 };
 
-comprobanteService.findComprobante = async (id) => {
+comprobanteService.findComprobanteById = async (id) => {
   if (!id) throw new Error('El ID del comprobante es requerido.');
 
   const comprobante = await Comprobante.findOne({

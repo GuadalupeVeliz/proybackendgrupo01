@@ -1,0 +1,65 @@
+# clientes.http
+@baseUrl=http://localhost:3000/api/v1/clientes
+# @import ./auth.http
+# @ref loggedGerente
+# @ref loggedRecepcionista
+# @ref loggedCliente
+
+### Get Clientes
+GET {{baseUrl}}
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.token}}
+Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+### Create Cliente
+POST {{baseUrl}}
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.token}}
+Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+{
+    "dni": "0000001",
+    "nombreCompleto": "Xenon Air",
+    "telefono": "555-000-1234"
+}
+
+### Create Cliente
+POST {{baseUrl}}
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.token}}
+Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+{
+    "dni": "0000002",
+    "nombreCompleto": "Luna Bella",
+    "telefono": "555-000-9876"
+}
+
+### Get Cliente By ID
+GET {{baseUrl}}/2
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.token}}
+Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+### Edit Cliente
+PUT {{baseUrl}}/2
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.token}}
+Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+{
+    "dni": "0000003",
+    "telefono": "555-001-1234"
+}
+
+### Delete Cliente
+DELETE {{baseUrl}}/2
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.token}}
+Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}

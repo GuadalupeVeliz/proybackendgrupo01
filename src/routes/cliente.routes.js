@@ -4,8 +4,8 @@ const authMiddleware = require('../middlewares/auth.middleware');
 
 const clienteRoutes = express.Router();
 
-clienteRoutes.use(authMiddleware.verifyToken);
-clienteRoutes.use(authMiddleware.authorize(['Gerente', 'Recepcionista']));
+clienteRoutes.use(authMiddleware.verifyUserToken);
+clienteRoutes.use(authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']));
 
 clienteRoutes.get('/', clienteController.getClientes);
 clienteRoutes.post('/', clienteController.createCliente);

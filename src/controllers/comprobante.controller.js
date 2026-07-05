@@ -3,29 +3,24 @@ const pdfService = require('../services/pdf.service');
 
 const comprobanteController = {};
 
+// TODO: Revisar si estos 4 métodos son necesarios y funcionan correctamente.
 comprobanteController.getMyComprobantes = async (req, res) => {
   try {
     const clienteId = req.usuarioLogged.cliente.id;
-    const comprobantes =
-      await comprobanteService.findComprobantesByCliente(clienteId);
-    return res.status(200).json(comprobantes);
+    const comprobantes = await comprobanteService.findComprobantesByCliente(clienteId);
+    return res.status(200).json({ success: true, data: vacante });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ mensaje: error.message || 'Error al obtener tu historial' });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
-comprobanteController.getComprobantesByCliente = async (req, res) => {
+comprobanteController.getComprobantesByClienteId = async (req, res) => {
   try {
     const { clienteId } = req.params;
-    const comprobantes =
-      await comprobanteService.findComprobantesByCliente(clienteId);
-    return res.status(200).json(comprobantes);
+    const comprobantes = await comprobanteService.findComprobantesByClienteId(clienteId);
+    return res.status(200).json({ success: true, data: vacante });
   } catch (error) {
-    return res
-      .status(error.status || 500)
-      .json({ mensaje: error.message || 'Error al obtener los comprobantes' });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -33,12 +28,9 @@ comprobanteController.processCancelacion = async (req, res) => {
   try {
     const { reservaId } = req.body;
     const comprobante = await comprobanteService.processCancelacion(reservaId);
-    return res.status(201).json({
-      mensaje: 'Cancelación procesada y comprobante generado',
-      comprobante,
-    });
+    return res.status(201).json({ success: true, data: vacante });
   } catch (error) {
-    return res.status(error.status || 400).json({ mensaje: error.message });
+    return res.status(400).json({ success: false, error: error.message });
   }
 };
 
@@ -55,11 +47,8 @@ comprobanteController.downloadComprobantePDF = async (req, res) => {
 
     return pdfService.buildComprobantePDF(comprobante, res);
   } catch (error) {
-    console.error('Error crítico al generar PDF:', error);
     if (!res.headersSent) {
-      return res.status(error.status || 500).json({
-        mensaje: error.message || 'Error al generar el documento PDF',
-      });
+      return res.status(500).json({ success: false, error: error.message });
     }
   }
 };
@@ -67,49 +56,45 @@ comprobanteController.downloadComprobantePDF = async (req, res) => {
 comprobanteController.getComprobantes = async (req, res) => {
   try {
     const comprobantes = await comprobanteService.findComprobantes();
-    return res.status(200).json(comprobantes);
+    return res.status(200).json({ success: true, data: vacante });
   } catch (error) {
-    return res.status(500).json({ mensaje: error.message });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
-comprobanteController.getComprobante = async (req, res) => {
+comprobanteController.getComprobanteById = async (req, res) => {
   try {
-    const comprobante = await comprobanteService.findComprobante(req.params.id);
-    return res.status(200).json(comprobante);
+    const comprobante = await comprobanteService.findComprobanteById(req.params.id);
+    return res.status(200).json({ success: true, data: vacante });
   } catch (error) {
-    return res.status(error.status || 404).json({ mensaje: error.message });
+    return res.status(404).json({ success: false, error: error.message });
   }
 };
 
 comprobanteController.createComprobante = async (req, res) => {
   try {
     const nuevoComprobante = await comprobanteService.addComprobante(req.body);
-    return res.status(201).json(nuevoComprobante);
+    return res.status(201).json({ success: true, data: vacante });
   } catch (error) {
-    return res.status(400).json({ mensaje: error.message });
+    return res.status(400).json({ success: false, error: error.message });
   }
 };
 
 comprobanteController.updateComprobante = async (req, res) => {
   try {
     await comprobanteService.editComprobante(req.params.id, req.body);
-    return res
-      .status(200)
-      .json({ mensaje: 'Comprobante actualizado exitosamente' });
+    return res.status(200).json({ success: true, data: vacante });
   } catch (error) {
-    return res.status(400).json({ mensaje: error.message });
+    return res.status(400).json({ success: false, error: error.message });
   }
 };
 
 comprobanteController.deleteComprobante = async (req, res) => {
   try {
     await comprobanteService.deleteComprobante(req.params.id);
-    return res
-      .status(200)
-      .json({ mensaje: 'Comprobante eliminado exitosamente' });
+    return res.status(200).json({ success: true, data: vacante });
   } catch (error) {
-    return res.status(error.status || 404).json({ mensaje: error.message });
+    return res.status(404).json({ success: false, error: error.message });
   }
 };
 

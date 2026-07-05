@@ -1,0 +1,63 @@
+# empleados.http
+@baseUrl=http://localhost:3000/api/v1/empleados
+# @import ./auth.http
+# @ref loggedGerente
+# @ref loggedRecepcionista
+# @ref loggedCliente
+
+### Get Empleados
+GET {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.token}}
+# Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+### Create Empleado (gerente)
+POST {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.token}}
+# Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+{
+    "legajo": "EMP-0001",
+    "sede": "central",
+    "esGerente": true
+}
+
+### Create Empleado (recepcionista)
+POST {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.token}}
+# Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+{
+    "legajo": "EMP-0002",
+    "sede": "sucursal"
+}
+
+### Get Empleado By ID
+GET {{baseUrl}}/2
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.token}}
+# Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+### Edit Empleado
+PUT {{baseUrl}}/2
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.token}}
+# Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+{
+    "sede": "central"
+}
+
+### Delete Empleado
+DELETE {{baseUrl}}/1
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.token}}
+# Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}

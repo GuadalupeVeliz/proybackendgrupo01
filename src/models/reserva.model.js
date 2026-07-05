@@ -4,7 +4,7 @@ const sequelize = require('../../config/database.config');
 const Reserva = sequelize.define(
   'Reserva',
   {
-    fechaReservacion: {
+    fechaDeReservacion: {
       type: DataTypes.DATEONLY,
       allowNull: false,
       validate: {
@@ -14,11 +14,7 @@ const Reserva = sequelize.define(
         },
       },
     },
-    fechaCreacion: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    cantidadPersonas: {
+    cantidadDePersonas: {
       type: DataTypes.INTEGER,
       allowNull: false,
       validate: {
@@ -27,12 +23,6 @@ const Reserva = sequelize.define(
           msg: 'La reserva debe ser como mínimo para 1 persona.',
         },
       },
-    },
-    estado: {
-      type: DataTypes.ENUM,
-      values: ['pendiente', 'confirmada', 'cancelada'],
-      defaultValue: 'pendiente',
-      allowNull: false,
     },
     montoPagado: {
       type: DataTypes.DECIMAL(10, 2),
@@ -45,9 +35,15 @@ const Reserva = sequelize.define(
         },
       },
     },
-    activo: {
+    estado: {
+      type: DataTypes.ENUM,
+      values: ['pendiente', 'confirmada', 'cancelada'],
+      defaultValue: 'pendiente',
+      allowNull: false,
+    },
+    eliminado: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true,
+      defaultValue: false,
       allowNull: false,
     },
   },

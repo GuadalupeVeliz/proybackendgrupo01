@@ -22,17 +22,12 @@ const Pago = sequelize.define(
     },
     metodoPago: {
       type: DataTypes.ENUM,
-      values: [
-        'EFECTIVO',
-        'TARJETA_CREDITO',
-        'TARJETA_DEBITO',
-        'TRANSFERENCIA',
-      ],
+      values: ['EFECTIVO', 'TARJETA_CREDITO', 'TARJETA_DEBITO', 'TRANSFERENCIA'],
       allowNull: false,
     },
     estado: {
       type: DataTypes.ENUM,
-      values: ['pagado', 'pendiente'],
+      values: ['pagado', 'pendiente', 'cancelado'],
       defaultValue: 'pendiente',
       allowNull: false,
     },

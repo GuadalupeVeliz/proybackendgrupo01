@@ -10,35 +10,44 @@ const PaqueteTuristico = sequelize.define(
       allowNull: false,
       validate: {
         notEmpty: {
-          msg: 'El nombre del paquete turístico no puede estar vacío.',
+          msg: 'El nombre no puede estar vacío.',
         },
       },
     },
-    destino: {
+    ubicacion: {
       type: DataTypes.STRING(100),
       allowNull: false,
       validate: {
-        notEmpty: { msg: 'El destino no puede estar vacío.' },
+        notEmpty: { msg: 'La ubicación no puede estar vacía.' },
       },
     },
-    precio: {
+    descripcion: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'La descripción no pueden estar vacía.' },
+      },
+    },
+    precioBase: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       validate: {
         isPositive(value) {
           if (value === null || value === undefined || parseFloat(value) <= 0) {
-            throw new Error('El precio del paquete debe ser mayor a cero.');
+            throw new Error('El costo debe ser mayor a cero.');
           }
         },
       },
     },
-    duracionDias: {
-      type: DataTypes.INTEGER,
+    duracionEnDias: {
+      type: DataTypes.ENUM,
+      values: ['3', '7'],
+      defaultValue: '3',
       allowNull: false,
       validate: {
-        min: {
-          args: [1],
-          msg: 'La duración mínima es de 1 día.',
+        isIn: {
+          args: [['3', '7']],
+          msg: 'La duración debe ser 3 o 7 días.',
         },
       },
     },
@@ -46,52 +55,21 @@ const PaqueteTuristico = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: true,
     },
-    fechaCreacion: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
     estado: {
       type: DataTypes.ENUM,
-      values: ['activo', 'inactivo'],
-      defaultValue: 'activo',
+      values: ['disponible', 'no_disponible'],
+      defaultValue: 'disponible',
+      allowNull: false,
     },
-    activo: {
+    eliminado: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true,
+      defaultValue: false,
       allowNull: false,
     },
   },
   {
     tableName: 'paquetes_turisticos',
     timestamps: true,
-    hooks: {
-      beforeUpdate: async (paquete) => {
-        const isTransitioningToInactiveStatus =
-          paquete.changed('estado') && paquete.estado === 'inactivo';
-        const isPerformingSoftDelete =
-          paquete.changed('activo') && paquete.activo === false;
-
-        if (isTransitioningToInactiveStatus || isPerformingSoftDelete) {
-          const activeVacancyWithBookings =
-            await sequelize.models.Vacante.findOne({
-              where: {
-                paqueteTuristicoId: paquete.id,
-                activo: true,
-                cupoDisponible: {
-                  [sequelize.Sequelize.Op.lt]:
-                    sequelize.Sequelize.col('cupoTotal'),
-                },
-              },
-            });
-
-          if (activeVacancyWithBookings) {
-            throw new Error(
-              'No se puede desactivar el paquete turístico porque existen vacantes asociadas con reservas activas.'
-            );
-          }
-        }
-      },
-    },
   }
 );
 

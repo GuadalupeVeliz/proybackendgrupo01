@@ -5,44 +5,36 @@ const vacanteController = {};
 vacanteController.createVacante = async (req, res) => {
   try {
     const vacante = await vacanteService.addVacante(req.body);
-    return res.status(201).json(vacante);
+    return res.status(201).json({ success: true, data: vacante });
   } catch (error) {
-    return res.status(400).json({
-      mensaje: error.message,
-    });
+    return res.status(400).json({ success: false, error: error.message });
   }
 };
 
 vacanteController.getVacantes = async (req, res) => {
   try {
     const vacantes = await vacanteService.findVacantes();
-    return res.status(200).json(vacantes);
+    return res.status(200).json({ success: true, data: vacantes });
   } catch (error) {
-    return res.status(500).json({
-      mensaje: error.message,
-    });
+    return res.status(500).json({ success: false, error: error.message });
   }
 };
 
 vacanteController.getVacante = async (req, res) => {
   try {
-    const vacante = await vacanteService.findVacante(req.params.id);
-    return res.status(200).json(vacante);
+    const vacante = await vacanteService.findVacanteById(req.params.id);
+    return res.status(200).json({ success: true, data: vacante });
   } catch (error) {
-    return res.status(404).json({
-      mensaje: error.message,
-    });
+    return res.status(404).json({ success: false, error: error.message });
   }
 };
 
 vacanteController.updateVacante = async (req, res) => {
   try {
     const vacante = await vacanteService.editVacante(req.params.id, req.body);
-    return res.status(200).json(vacante);
+    return res.status(200).json({ success: true, data: vacante });
   } catch (error) {
-    return res.status(404).json({
-      mensaje: error.message,
-    });
+    return res.status(404).json({ success: false, error: error.message });
   }
 };
 
@@ -51,9 +43,7 @@ vacanteController.deleteVacante = async (req, res) => {
     await vacanteService.deleteVacante(req.params.id);
     return res.status(204).send();
   } catch (error) {
-    return res.status(404).json({
-      mensaje: error.message,
-    });
+    return res.status(404).json({ success: false, error: error.message });
   }
 };
 

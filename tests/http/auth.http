@@ -1,0 +1,85 @@
+# auth.http
+@baseUrl=http://localhost:3000/api/v1/auth
+
+### Registrar Gerente (empleado)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+    "correoElectronico": "gerente@company.com",
+    "clave": "gerente-pass",
+    "legajo": "EMP-0001",
+    "sede": "central",
+    "esGerente": true
+}
+
+### Registrar Recepcionista (empleado)
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+    "correoElectronico": "recepcionista@company.com",
+    "clave": "recepcionista-pass",
+    "legajo": "EMP-0002",
+    "sede": "sucursal"
+}
+
+### Registrar Cliente
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+    "correoElectronico": "cliente@world.com",
+    "clave": "cliente-pass",
+    "dni": "0000001",
+    "nombreCompleto": "Xenon Air",
+    "telefono": "555-000-1234"
+}
+
+### Login Gerente (empleado)
+# @name loggedGerente
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+    "correoElectronico": "gerente@company.com",
+    "clave": "gerente-pass"
+}
+
+### Login Recepcionista (empleado)
+# @name loggedRecepcionista
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+    "correoElectronico": "recepcionista@company.com",
+    "clave": "recepcionista-pass"
+}
+
+### Login Cliente
+# @name loggedCliente
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+    "correoElectronico": "cliente@world.com",
+    "clave": "cliente-pass"
+}
+
+### Logout
+# @ref loggedGerente
+POST {{baseUrl}}/logout
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+
+### Logout
+# @ref loggedRecepcionista
+POST {{baseUrl}}/logout
+Content-Type: application/json
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+
+### Logout
+# @ref loggedCliente
+POST {{baseUrl}}/logout
+Content-Type: application/json
+Authorization: Bearer {{loggedCliente.data.token}}

@@ -8,17 +8,14 @@ const Usuario = sequelize.define(
       type: DataTypes.STRING,
       unique: true,
       validate: {
-        isEmail: true,
+        isEmail: {
+          msg: 'El correo electrónico debe tener un formato válido.',
+        },
       },
       allowNull: false,
     },
-    contrasena: {
+    clave: {
       type: DataTypes.STRING,
-      allowNull: false,
-    },
-    fechaCreacion: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
       allowNull: false,
     },
     ultimoAcceso: {
@@ -26,9 +23,9 @@ const Usuario = sequelize.define(
       defaultValue: DataTypes.NOW,
       allowNull: false,
     },
-    activo: {
+    eliminado: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true,
+      defaultValue: false,
       allowNull: false,
     },
   },

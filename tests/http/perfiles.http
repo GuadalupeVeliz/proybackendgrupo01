@@ -1,0 +1,48 @@
+# perfiles.http
+@baseUrl=http://localhost:3000/api/v1/perfiles
+# @import ./auth.http
+# @ref loggedGerente
+# @ref loggedRecepcionista
+# @ref loggedCliente
+
+### Get Perfiles (Todos)
+GET {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.token}}
+# Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+### Edit Perfil (Usuario)
+PUT {{baseUrl}}
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.token}}
+# Authorization: Bearer {{loggedRecepcionista.token}}
+Authorization: Bearer {{loggedCliente.token}}
+
+{
+    "correoElectronico": "nuevo-correo@world.com",
+    "contrasena": "clave-super-segura-2026"
+}
+
+### Edit Perfil (Empleado)
+PUT {{baseUrl}}
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.token}}
+Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+{
+    "sede": "central"
+}
+
+### Edit Perfil (Cliente)
+PUT {{baseUrl}}
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.token}}
+# Authorization: Bearer {{loggedRecepcionista.token}}
+Authorization: Bearer {{loggedCliente.token}}
+
+{
+    "telefono": "555-000-9876",
+    "nombreCompleto": "Luna Bella"
+}

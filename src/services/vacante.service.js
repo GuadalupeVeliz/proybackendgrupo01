@@ -3,137 +3,131 @@ const { Op } = require('sequelize');
 
 const vacanteService = {};
 
-vacanteService.addVacante = async (datosVacante) => {
-  const vacante = await Vacante.findOne({
+vacanteService.addVacante = async (data) => {
+  const existingVacante = await Vacante.findOne({
     where: {
-      paqueteTuristicoId: datosVacante.paqueteTuristicoId,
-      fechaSalida: datosVacante.fechaSalida,
-      sucursal: datosVacante.sucursal,
-      activo: true,
+      paqueteTuristicoId: data.paqueteTuristicoId,
+      fechaDeSalida: data.fechaDeSalida,
+      estado: 'disponible',
+      eliminado: false,
     },
   });
 
-  if (vacante) {
-    throw new Error(
-      'Ya existe una vacante para ese paquete turistico, fecha y sucursal.'
-    );
+  if (existingVacante) {
+    throw new Error('Ya existe una vacante para ese paquete turístico y fecha de salida.');
   }
 
-  return await Vacante.create(datosVacante);
+  return await Vacante.create(data);
 };
 
-vacanteService.findVacantes = async () => {
+vacanteService.findVacantes = async (filters = { estado: 'disponible', eliminado: false }) => {
   return await Vacante.findAll({
-    where: { activo: true },
+    where: filters,
     include: {
       model: PaqueteTuristico,
       as: 'paqueteTuristico',
     },
-    order: [['fechaSalida', 'ASC']],
+    order: [['fechaDeSalida', 'ASC']],
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
   });
 };
 
-vacanteService.findVacante = async (vacanteId) => {
-  const vacante = await Vacante.findOne({
-    where: { id: vacanteId, activo: true },
+vacanteService.findVacanteById = async (id) => {
+  const existingVacante = await Vacante.findOne({
+    where: { id: id, estado: 'disponible', eliminado: false },
     include: {
       model: PaqueteTuristico,
       as: 'paqueteTuristico',
     },
+    attributes: { exclude: ['createdAt', 'updatedAt'] },
   });
 
-  if (!vacante) {
+  if (!existingVacante) {
     throw new Error('Vacante no encontrada o dada de baja.');
+    º;
   }
 
-  return vacante;
+  return existingVacante;
 };
 
-vacanteService.editVacante = async (vacanteId, datosVacante) => {
-  const vacante = await Vacante.findOne({
-    where: { id: vacanteId, activo: true },
+vacanteService.editVacante = async (id, data) => {
+  const existingVacante = await Vacante.findOne({
+    where: { id: id, estado: 'disponible', eliminado: false },
   });
 
-  if (!vacante) {
+  if (!existingVacante) {
     throw new Error('Vacante no encontrada o dada de baja.');
   }
 
-  if (datosVacante.fechaSalida || datosVacante.sucursal) {
-    const vacanteExistente = await Vacante.findOne({
+  if (data.fechaDeSalida) {
+    const conflictingVacanteByFechaSalida = await Vacante.findOne({
       where: {
-        paqueteTuristicoId: vacante.paqueteTuristicoId,
-        fechaSalida: datosVacante.fechaSalida || vacante.fechaSalida,
-        sucursal: datosVacante.sucursal || vacante.sucursal,
-        activo: true,
-        id: { [Op.ne]: vacanteId },
+        paqueteTuristicoId: existingVacante.paqueteTuristicoId,
+        fechaDeSalida: data.fechaDeSalida || existingVacante.fechaDeSalida,
+        estado: 'disponible',
+        eliminado: false,
+        id: { [Op.ne]: id },
       },
     });
 
-    if (vacanteExistente) {
-      throw new Error(
-        'Ya existe una vacante para ese paquete, fecha y sucursal.'
-      );
+    if (conflictingVacanteByFechaSalida) {
+      throw new Error('Ya existe una vacante para ese paquete turístico y fecha de salida.');
     }
   }
 
-  const nuevoCupoTotal =
-    datosVacante.cupoTotal != null ? datosVacante.cupoTotal : vacante.cupoTotal;
-  const reservados = Math.max(0, vacante.cupoTotal - vacante.cupoDisponible);
+  const updatedCupoTotal = data.cupoTotal != null ? data.cupoTotal : existingVacante.cupoTotal;
+  const reservedCupos = Math.max(0, existingVacante.cupoTotal - existingVacante.cupoDisponible);
 
-  if (datosVacante.cupoTotal != null) {
-    if (datosVacante.cupoTotal < reservados) {
-      throw new Error(
-        `No puedes asignar un cupo total de ${datosVacante.cupoTotal} porque ya existen ${reservados} reservas asociadas.`
-      );
-    }
-
-    datosVacante.cupoDisponible = datosVacante.cupoTotal - reservados;
-  }
-
-  return await vacante.update(datosVacante);
-};
-
-vacanteService.deleteVacante = async (vacanteId) => {
-  const vacante = await Vacante.findOne({
-    where: { id: vacanteId, activo: true },
-  });
-
-  if (!vacante) {
-    throw new Error('Vacante no encontrada o ya eliminada.');
-  }
-
-  if (vacante.cupoDisponible < vacante.cupoTotal) {
+  if (updatedCupoTotal < reservedCupos) {
     throw new Error(
-      'No se puede dar de baja una vacante que ya posee reservas asociadas.'
+      `No puedes asignar un cupo total de ${updatedCupoTotal} porque ya existen ${reservedCupos} reservas asociadas.`
     );
   }
 
-  return await vacante.update({ activo: false });
+  data.cupoDisponible = updatedCupoTotal - reservedCupos;
+
+  return await existingVacante.update(data);
 };
 
-vacanteService.consultarDisponibilidad = async (vacanteId, cantidad) => {
-  const vacante = await vacanteService.findVacante(vacanteId);
+vacanteService.deleteVacante = async (id) => {
+  const existingVacante = await Vacante.findOne({
+    where: { id: id, estado: 'disponible', eliminado: false },
+  });
+
+  if (!existingVacante) {
+    throw new Error('Vacante no encontrada o ya eliminada.');
+  }
+
+  if (existingVacante.cupoDisponible < existingVacante.cupoTotal) {
+    throw new Error('No se puede dar de baja una vacante que ya posee reservas asociadas.');
+  }
+
+  return await existingVacante.update({ eliminado: true });
+};
+
+vacanteService.checkAvailability = async (id, quantity) => {
+  const existingVacante = await vacanteService.findVacanteById(id);
 
   return {
-    disponible: vacante.cupoDisponible >= cantidad,
-    cupoDisponible: vacante.cupoDisponible,
-    cantidadSolicitada: cantidad,
+    estaDisponible: existingVacante.cupoDisponible >= quantity,
+    cuposDisponibles: existingVacante.cupoDisponible,
+    cuposSolicitados: quantity,
   };
 };
 
-vacanteService.descontarCupo = async (vacanteId, cantidad) => {
-  const vacante = await vacanteService.findVacante(vacanteId);
+vacanteService.decreaseCupoDisponible = async (id, quantity) => {
+  const existingVacante = await vacanteService.findVacanteById(id);
 
-  return await vacante.update({
-    cupoDisponible: vacante.cupoDisponible - cantidad,
+  return await existingVacante.update({
+    cupoDisponible: existingVacante.cupoDisponible - quantity,
   });
 };
 
-vacanteService.restaurarCupo = async (vacanteId, cantidad) => {
-  const vacante = await vacanteService.findVacante(vacanteId);
+vacanteService.restoreCupoDisponible = async (id, quantity) => {
+  const existingVacante = await vacanteService.findVacanteById(id);
 
-  return await vacante.update({
-    cupoDisponible: vacante.cupoDisponible + cantidad,
+  return await existingVacante.update({
+    cupoDisponible: existingVacante.cupoDisponible + quantity,
   });
 };
 
