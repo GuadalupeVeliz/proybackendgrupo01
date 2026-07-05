@@ -4,54 +4,54 @@ const authMiddleware = require('../middlewares/auth.middleware');
 
 const reservaRoutes = express.Router();
 
-reservaRoutes.use(authMiddleware.verifyToken);
+reservaRoutes.use(authMiddleware.verifyUserToken);
 
 reservaRoutes.get(
   '/',
-  authMiddleware.authorize(['Gerente', 'Recepcionista', 'Cliente']),
-  reservaController.getReservas
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
+  reservaController.getReservas,
 );
 
 reservaRoutes.post(
   '/',
-  authMiddleware.authorize(['Gerente', 'Recepcionista', 'Cliente']),
-  reservaController.createReserva
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
+  reservaController.createReserva,
 );
 
 reservaRoutes.get(
   '/:id',
-  authMiddleware.authorize(['Gerente', 'Recepcionista', 'Cliente']),
-  reservaController.getReserva
-);
-
-reservaRoutes.get(
-  '/cliente/:clienteId',
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
-  reservaController.getReservasByCliente
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
+  reservaController.getReservaById,
 );
 
 reservaRoutes.put(
   '/:id',
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
-  reservaController.updateReserva
-);
-
-reservaRoutes.put(
-  '/checkout/:id',
-  authMiddleware.authorize(['Gerente', 'Recepcionista', 'Cliente']),
-  reservaController.checkoutReserva
-);
-
-reservaRoutes.put(
-  '/cancel/:id',
-  authMiddleware.authorize(['Gerente', 'Recepcionista', 'Cliente']),
-  reservaController.cancelReserva
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
+  reservaController.updateReserva,
 );
 
 reservaRoutes.delete(
   '/:id',
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
-  reservaController.deleteReserva
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
+  reservaController.deleteReserva,
+);
+
+reservaRoutes.get(
+  '/cliente/:clienteId',
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
+  reservaController.getReservasByClienteId,
+);
+
+reservaRoutes.put(
+  '/checkout/:id',
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
+  reservaController.checkoutReserva,
+);
+
+reservaRoutes.put(
+  '/cancel/:id',
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
+  reservaController.cancelReserva,
 );
 
 module.exports = reservaRoutes;

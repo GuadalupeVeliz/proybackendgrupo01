@@ -1,0 +1,77 @@
+# reservas.http
+@baseUrl=http://localhost:3000/api/v1/reservas
+# @import ./auth.http
+# @ref loggedGerente
+# @ref loggedRecepcionista
+# @ref loggedCliente
+
+### GET ALL Reservas (Todos)
+GET {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### CREATE Reserva (Todos)
+POST {{baseUrl}}
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "clienteId": 1,
+    "vacanteId": 1,
+    "fechaDeReservacion": "2026-08-15",
+    "cantidadDePersonas": 8
+}
+
+### GET Reserva BY ID (Todos)
+GET {{baseUrl}}/1
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+Authorization: Bearer {{loggedCliente.data.token}}
+
+### UPDATE Reserva (Gerente y Recepcionista)
+PUT {{baseUrl}}/1
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "cantidadPersonas": 3
+}
+
+### DELETE Reserva (Gerente y Recepcionista)
+DELETE {{baseUrl}}/1
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### GET Reservas BY Cliente ID (Gerente y Recepcionista)
+GET {{baseUrl}}/cliente/1
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+Authorization: Bearer {{loggedCliente.data.token}}
+
+### CONFIRMAR Reserva (Todos)
+PUT {{baseUrl}}/checkout/1
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "montoPagado": 2
+}
+
+### CANCELAR Reserva (Todos)
+PUT {{baseUrl}}/cancel/1
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+Authorization: Bearer {{loggedCliente.data.token}}

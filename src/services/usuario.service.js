@@ -1,115 +1,114 @@
 const { Cliente, Empleado, Usuario } = require('../models');
 const { Op } = require('sequelize');
 const bcrypt = require('bcryptjs');
+const empleadoService = require('../services/empleado.service');
+const clienteService = require('../services/cliente.service');
 
 const usuarioService = {};
 
-usuarioService.addUsuario = async (datosUsuario) => {
-  const usuario = await Usuario.findOne({
+usuarioService.addUsuario = async (data) => {
+  const existingCorreoElectronico = await Usuario.findOne({
     where: {
-      correoElectronico: datosUsuario.correoElectronico,
-      activo: true,
+      correoElectronico: data.correoElectronico,
+      eliminado: false,
     },
   });
 
-  if (usuario) {
-    throw new Error('El correo electronico se encuentra registrado.');
-  }
-
-  if (datosUsuario.contrasena) {
-    const salt = await bcrypt.genSalt(10);
-    const contraseñaEncriptada = await bcrypt.hash(
-      datosUsuario.contrasena,
-      salt
+  if (existingCorreoElectronico) {
+    throw new Error(
+      'El correo electrónico ya está registrado (puede que pertenezca a un usuario dado de baja).',
     );
-    datosUsuario.contrasena = contraseñaEncriptada;
   }
 
-  const nuevoUsuario = await Usuario.create(datosUsuario);
+  if (data.clave) {
+    const salt = await bcrypt.genSalt(10);
+    const encryptedClave = await bcrypt.hash(data.clave, salt);
+    data.clave = encryptedClave;
+  }
 
-  if (datosUsuario.legajo) {
-    await Empleado.create({
-      legajo: datosUsuario.legajo,
-      sede: datosUsuario.sede,
-      esGerente: datosUsuario.esGerente,
-      usuarioId: nuevoUsuario.id,
+  const newUsuario = await Usuario.create(data);
+
+  if (data.legajo) {
+    await empleadoService.addEmpleado({
+      legajo: data.legajo,
+      sede: data.sede,
+      esGerente: data.esGerente,
+      usuarioId: newUsuario.id,
     });
-  } else if (datosUsuario.dni) {
-    await Cliente.create({
-      dni: datosUsuario.dni,
-      nombreCompleto: datosUsuario.nombreCompleto,
-      telefono: datosUsuario.telefono,
-      usuarioId: nuevoUsuario.id,
+  } else if (data.dni) {
+    await clienteService.addCliente({
+      dni: data.dni,
+      nombreCompleto: data.nombreCompleto,
+      telefono: data.telefono,
+      usuarioId: newUsuario.id,
     });
   } else {
-    await nuevoUsuario.destroy();
-    throw new Error(
-      'No se proporcionaron datos suficientes para crear un perfil de usuario.'
-    );
+    await newUsuario.destroy();
+    throw new Error('No se proporcionaron datos suficientes para crear un perfil de usuario.');
   }
 
-  return nuevoUsuario;
+  return newUsuario;
 };
 
-usuarioService.findUsuarios = async () => {
-  return await Usuario.findAll({
-    where: { activo: true },
-  });
+usuarioService.findUsuarios = async (filters = { eliminado: false }) => {
+  return await Usuario.findAll({ where: filters });
 };
 
-usuarioService.findUsuario = async (usuarioId) => {
-  const usuario = await Usuario.findOne({
-    where: { id: usuarioId, activo: true },
+usuarioService.findUsuarioById = async (id) => {
+  const existingUsuario = await Usuario.findOne({
+    where: { id: id, eliminado: false },
   });
 
-  if (!usuario) {
-    throw new Error('Usuario no encontrado.');
+  if (!existingUsuario) {
+    throw new Error('Usuario no encontrado o dado de bajo.');
   }
 
-  return usuario;
+  return existingUsuario;
 };
 
-usuarioService.editUsuario = async (usuarioId, datosUsuario) => {
-  const usuario = await Usuario.findOne({
-    where: { id: usuarioId, activo: true },
+usuarioService.editUsuario = async (id, updates) => {
+  const existingUsuario = await Usuario.findOne({
+    where: { id: id, eliminado: false },
   });
 
-  if (!usuario) {
-    throw new Error('Usuario no encontrado.');
+  if (!existingUsuario) {
+    throw new Error('Usuario no encontrado o dado de bajo.');
   }
 
-  if (datosUsuario.correoElectronico) {
-    const dupplicatedCorreoElectronico = await Usuario.findOne({
+  if (updates.correoElectronico) {
+    const existingCorreoElectronico = await Usuario.findOne({
       where: {
-        correoElectronico: datosUsuario.correoElectronico,
-        activo: true,
-        id: { [Op.ne]: usuarioId },
+        correoElectronico: updates.correoElectronico,
+        eliminado: false,
+        id: { [Op.ne]: id },
       },
     });
 
-    if (dupplicatedCorreoElectronico) {
-      throw new Error('El correo electrónico ya se encuentra registrado.');
+    if (existingCorreoElectronico) {
+      throw new Error(
+        'El correo electrónico ya está registrado (puede que pertenezca a un usuario dado de baja).',
+      );
     }
   }
 
-  if (datosUsuario.contrasena) {
+  if (updates.clave) {
     const salt = await bcrypt.genSalt(10);
-    datosUsuario.contrasena = await bcrypt.hash(datosUsuario.contrasena, salt);
+    updates.clave = await bcrypt.hash(updates.clave, salt);
   }
 
-  return await usuario.update(datosUsuario);
+  return await existingUsuario.update(updates);
 };
 
-usuarioService.deleteUsuario = async (usuarioId) => {
-  const usuario = await Usuario.findOne({
-    where: { id: usuarioId, activo: true },
+usuarioService.deleteUsuario = async (id) => {
+  const existingUsuario = await Usuario.findOne({
+    where: { id: id, eliminado: false },
   });
 
-  if (!usuario) {
-    throw new Error('Usuario no encontrado.');
+  if (!existingUsuario) {
+    throw new Error('Usuario no encontrado o dado de bajo.');
   }
 
-  return await usuario.update({ activo: false });
+  return await existingUsuario.update({ eliminado: true });
 };
 
 module.exports = usuarioService;

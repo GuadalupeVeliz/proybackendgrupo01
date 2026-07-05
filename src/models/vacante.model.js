@@ -4,7 +4,7 @@ const sequelize = require('../../config/database.config');
 const Vacante = sequelize.define(
   'Vacante',
   {
-    fechaSalida: {
+    fechaDeSalida: {
       type: DataTypes.DATEONLY,
       allowNull: false,
       validate: {
@@ -13,11 +13,6 @@ const Vacante = sequelize.define(
           msg: 'La fecha de salida debe ser posterior a la fecha actual.',
         },
       },
-    },
-    sucursal: {
-      type: DataTypes.ENUM,
-      values: ['SAN_SALVADOR', 'PURMAMARCA', 'TILCARA'],
-      allowNull: false,
     },
     cupoTotal: {
       type: DataTypes.INTEGER,
@@ -36,16 +31,20 @@ const Vacante = sequelize.define(
         min: { args: [0], msg: 'El cupo disponible no puede ser negativo.' },
         isLessThanTotal(value) {
           if (value > this.cupoTotal) {
-            throw new Error(
-              'El cupo disponible no puede ser mayor al cupo total.'
-            );
+            throw new Error('El cupo disponible no puede ser mayor al cupo total.');
           }
         },
       },
     },
-    activo: {
+    estado: {
+      type: DataTypes.ENUM,
+      values: ['disponible', 'no_disponible'],
+      defaultValue: 'disponible',
+      allowNull: false,
+    },
+    eliminado: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true,
+      defaultValue: false,
       allowNull: false,
     },
   },
@@ -54,24 +53,21 @@ const Vacante = sequelize.define(
     timestamps: true,
     hooks: {
       beforeValidate: async (vacante) => {
-        if (
-          vacante.cupoDisponible === undefined ||
-          vacante.cupoDisponible == null
-        ) {
+        if (vacante.cupoDisponible === undefined || vacante.cupoDisponible == null) {
           vacante.cupoDisponible = vacante.cupoTotal;
         }
 
-        const paqueteTuristico =
-          await sequelize.models.PaqueteTuristico.findByPk(
-            vacante.paqueteTuristicoId
-          );
+        const paqueteTuristico = await sequelize.models.PaqueteTuristico.findByPk(
+          vacante.paqueteTuristicoId
+        );
+
         if (
           !paqueteTuristico ||
-          paqueteTuristico.estado === 'inactivo' ||
-          !paqueteTuristico.activo
+          paqueteTuristico.estado === 'no_disponible' ||
+          paqueteTuristico.eliminado
         ) {
           throw new Error(
-            'No se pueden crear vacantes para un paquete turístico inactivo o eliminado.'
+            'No se pueden crear vacantes para un paquete turístico no disponible o eliminado.'
           );
         }
       },

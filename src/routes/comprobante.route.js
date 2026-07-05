@@ -4,53 +4,48 @@ const authMiddleware = require('../middlewares/auth.middleware');
 
 const comprobanteRoutes = express.Router();
 
-comprobanteRoutes.use(authMiddleware.verifyToken);
+comprobanteRoutes.use(authMiddleware.verifyUserToken);
 
 comprobanteRoutes.get(
   '/me',
-  authMiddleware.authorize(['Cliente']),
-  comprobanteController.getMyComprobantes
+  authMiddleware.authorizeByRole(['Cliente']),
+  comprobanteController.getMyComprobantes,
 );
 comprobanteRoutes.get(
   '/cliente/:clienteId',
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
-  comprobanteController.getComprobantesByCliente
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
+  comprobanteController.getComprobantesByClienteId,
 );
 comprobanteRoutes.get(
   '/:id/download-pdf',
-  authMiddleware.authorize(['Gerente', 'Recepcionista', 'Cliente']),
-  comprobanteController.downloadComprobantePDF
-);
-comprobanteRoutes.post(
-  '/cancel',
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
-  comprobanteController.processCancelacion
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
+  comprobanteController.downloadComprobantePDF,
 );
 
 comprobanteRoutes.get(
   '/',
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
-  comprobanteController.getComprobantes
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
+  comprobanteController.getComprobantes,
 );
 comprobanteRoutes.post(
   '/',
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
-  comprobanteController.createComprobante
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
+  comprobanteController.createComprobante,
 );
 comprobanteRoutes.get(
   '/:id',
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
-  comprobanteController.getComprobante
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
+  comprobanteController.getComprobanteById,
 );
 comprobanteRoutes.put(
   '/:id',
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
-  comprobanteController.updateComprobante
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
+  comprobanteController.updateComprobante,
 );
 comprobanteRoutes.delete(
   '/:id',
-  authMiddleware.authorize(['Gerente', 'Recepcionista']),
-  comprobanteController.deleteComprobante
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']),
+  comprobanteController.deleteComprobante,
 );
 
 module.exports = comprobanteRoutes;

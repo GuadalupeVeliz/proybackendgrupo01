@@ -4,32 +4,32 @@ const authMiddleware = require('../middlewares/auth.middleware');
 
 const vacanteRoutes = express.Router();
 
-vacanteRoutes.use(authMiddleware.verifyToken);
+vacanteRoutes.use(authMiddleware.verifyUserToken);
 
 vacanteRoutes.get(
   '/',
-  authMiddleware.authorize(['Gerente', 'Recepcionista', 'Cliente']),
-  vacanteController.getVacantes
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
+  vacanteController.getVacantes,
 );
 vacanteRoutes.post(
   '/',
-  authMiddleware.authorize(['Gerente']),
-  vacanteController.createVacante
+  authMiddleware.authorizeByRole(['Gerente']),
+  vacanteController.createVacante,
 );
 vacanteRoutes.get(
   '/:id',
-  authMiddleware.authorize(['Gerente', 'Recepcionista', 'Cliente']),
-  vacanteController.getVacante
+  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
+  vacanteController.getVacante,
 );
 vacanteRoutes.put(
   '/:id',
-  authMiddleware.authorize(['Gerente']),
-  vacanteController.updateVacante
+  authMiddleware.authorizeByRole(['Gerente']),
+  vacanteController.updateVacante,
 );
 vacanteRoutes.delete(
   '/:id',
-  authMiddleware.authorize(['Gerente']),
-  vacanteController.deleteVacante
+  authMiddleware.authorizeByRole(['Gerente']),
+  vacanteController.deleteVacante,
 );
 
 module.exports = vacanteRoutes;

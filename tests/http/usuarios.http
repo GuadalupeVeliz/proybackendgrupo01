@@ -1,0 +1,82 @@
+# usuarios.http
+@baseUrl=http://localhost:3000/api/v1/usuarios
+# @import ./auth.http
+# @ref loggedGerente
+# @ref loggedRecepcionista
+# @ref loggedCliente
+
+### GET ALL Usuarios
+GET {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### CREATE Usuario (gerente)
+POST {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "correoElectronico": "gerente@company.com",
+    "contraseña": "gerente-pass",
+    "legajo": "EMP-0001",
+    "sede": "central",
+    "esGerente": true
+}
+
+### CREATE Usuario (recepcionista)
+POST {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "correoElectronico": "recepcionista@company.com",
+    "contraseña": "recepcionista-pass",
+    "legajo": "EMP-0002",
+    "sede": "sucursal"
+}
+### CREATE Usuario (cliente)
+
+POST {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "correoElectronico": "cliente@world.com",
+    "contraseña": "cliente-pass",
+    "dni": "0000001",
+    "nombreCompleto": "Xenon Air",
+    "telefono": "555-000-1234"
+}
+
+### GET Usuario BY ID
+GET {{baseUrl}}/3
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### UPDATE Usuario
+PUT {{baseUrl}}/3
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "contraseña": "cliente-pass-1"
+}
+
+### DELETE Usuario
+DELETE {{baseUrl}}/2
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}

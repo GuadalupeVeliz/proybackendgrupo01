@@ -1,0 +1,52 @@
+# clientes.http
+@baseUrl=http://localhost:3000/api/v1/clientes
+# @import ./auth.http
+# @ref loggedGerente
+# @ref loggedRecepcionista
+# @ref loggedCliente
+
+### GET ALL Clientes
+GET {{baseUrl}}
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### CREATE Cliente
+POST {{baseUrl}}
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "dni": "0000002",
+    "nombreCompleto": "Luna Bella",
+    "telefono": "555-000-9876"
+}
+
+### GET Cliente BY ID
+GET {{baseUrl}}/2
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### UPDATE Cliente
+PUT {{baseUrl}}/2
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "dni": "0000003",
+    "telefono": "555-001-1234"
+}
+
+### DELETE Cliente
+DELETE {{baseUrl}}/2
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
