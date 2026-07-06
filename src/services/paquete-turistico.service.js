@@ -1,5 +1,6 @@
 const { PaqueteTuristico, Vacante } = require('../models');
 const { Op } = require('sequelize');
+const { traducir } = require('./traductor.service');
 
 const paqueteTuristicoService = {};
 
@@ -22,23 +23,40 @@ paqueteTuristicoService.addPaqueteTuristico = async (data) => {
 };
 
 paqueteTuristicoService.findPaquetesTuristicos = async (
-  filters = { estado: 'disponible', eliminado: false },
+  lang='es'
 ) => {
-  return await PaqueteTuristico.findAll({
+  filters = { estado: 'disponible', eliminado: false }
+  const paquetes = await PaqueteTuristico.findAll({
     where: filters,
     include: { model: Vacante, as: 'vacantes' },
     attributes: { exclude: ['createdAt', 'updatedAt'] },
   });
+  if(lang!=='es') {
+    const paquetesTraducidos = await Promise.all(
+      paquetes.map(async (paquete) => {
+        const paqueteJSON = paquete.toJSON();
+        paqueteJSON.descripcion = await traducir(paqueteJSON.descripcion,lang);
+        return paqueteJSON;
+      })
+    )
+    return paquetesTraducidos;
+  }
+  return paquetes;
 };
 
-paqueteTuristicoService.findPaqueteTuristicoById = async (id) => {
+paqueteTuristicoService.findPaqueteTuristicoById = async (id,lang='es') => {
   const existingPaqueteTuristico = await PaqueteTuristico.findOne({
     where: { id: id, estado: 'disponible', eliminado: false },
     attributes: { exclude: ['createdAt', 'updatedAt'] },
   });
-
   if (!existingPaqueteTuristico) {
     throw new Error('Paquete turístico no encontrado, no disponible o dado de baja.');
+  }
+
+  if(lang!=='es') {
+    const paqueteTraducido = existingPaqueteTuristico.toJSON();
+    paqueteTraducido.descripcion = await traducir(paqueteTraducido.descripcion,lang);
+    return paqueteTraducido;
   }
 
   return existingPaqueteTuristico;

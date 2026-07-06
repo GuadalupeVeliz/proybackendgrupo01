@@ -13,7 +13,7 @@ paqueteTuristicoController.createPaqueteTuristico = async (req, res) => {
 
 paqueteTuristicoController.getPaquetesTuristicos = async (req, res) => {
   try {
-    const paquetesTuristicos = await paqueteTuristicoService.findPaquetesTuristicos();
+    const paquetesTuristicos = await paqueteTuristicoService.findPaquetesTuristicos(req.query.lang);
     return res.status(200).json({ success: true, data: paquetesTuristicos });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
@@ -22,7 +22,7 @@ paqueteTuristicoController.getPaquetesTuristicos = async (req, res) => {
 
 paqueteTuristicoController.getPaqueteTuristicoById = async (req, res) => {
   try {
-    const paqueteTuristico = await paqueteTuristicoService.findPaqueteTuristicoById(req.params.id);
+    const paqueteTuristico = await paqueteTuristicoService.findPaqueteTuristicoById(req.params.id,req.query.lang);
     return res.status(200).json({ success: true, data: paqueteTuristico });
   } catch (error) {
     return res.status(404).json({ success: false, error: error.message });

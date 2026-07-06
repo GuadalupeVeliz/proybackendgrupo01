@@ -8,7 +8,6 @@ vacanteRoutes.use(authMiddleware.verifyUserToken);
 
 vacanteRoutes.get(
   '/',
-  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
   vacanteController.getVacantes,
 );
 vacanteRoutes.post(
