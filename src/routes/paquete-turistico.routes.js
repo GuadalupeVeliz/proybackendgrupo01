@@ -8,7 +8,6 @@ paqueteTuristicoRoutes.use(authMiddleware.verifyUserToken);
 
 paqueteTuristicoRoutes.get(
   '/',
-  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
   paqueteTuristicoController.getPaquetesTuristicos,
 );
 paqueteTuristicoRoutes.post(

@@ -6,11 +6,11 @@
 # @ref loggedCliente
 
 ### GET PaquetesTuristicos (Todos)
-GET {{baseUrl}}
+GET {{baseUrl}}?lang=en
 Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
-Authorization: Bearer {{loggedCliente.data.token}}
+#Authorization: Bearer {{loggedCliente.data.token}}
 
 ### CREATE PaquetesTuristico (Gerente)
 POST {{baseUrl}}
@@ -28,11 +28,11 @@ Authorization: Bearer {{loggedGerente.data.token}}
 }
 
 ### GET PaquetesTuristico BY ID (Todos)
-GET {{baseUrl}}/1
+GET {{baseUrl}}/1?lang=fr
 Content-Type: application/json
-# Authorization: Bearer {{loggedGerente.data.token}}
+Authorization: Bearer {{loggedGerente.data.token}}
 # Authorization: Bearer {{loggedRecepcionista.data.token}}
-Authorization: Bearer {{loggedCliente.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
 
 ### UPDATE PaquetesTuristico (Gerente)
 PUT {{baseUrl}}/1
