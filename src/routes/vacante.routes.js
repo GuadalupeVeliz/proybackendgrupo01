@@ -4,29 +4,29 @@ const authMiddleware = require('../middlewares/auth.middleware');
 
 const vacanteRoutes = express.Router();
 
-vacanteRoutes.use(authMiddleware.verifyUserToken);
-
 vacanteRoutes.get(
   '/',
   vacanteController.getVacantes,
 );
 vacanteRoutes.post(
   '/',
+  authMiddleware.verifyUserToken,
   authMiddleware.authorizeByRole(['Gerente']),
   vacanteController.createVacante,
 );
 vacanteRoutes.get(
   '/:id',
-  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
   vacanteController.getVacante,
 );
 vacanteRoutes.put(
   '/:id',
+  authMiddleware.verifyUserToken,
   authMiddleware.authorizeByRole(['Gerente']),
   vacanteController.updateVacante,
 );
 vacanteRoutes.delete(
   '/:id',
+  authMiddleware.verifyUserToken,
   authMiddleware.authorizeByRole(['Gerente']),
   vacanteController.deleteVacante,
 );

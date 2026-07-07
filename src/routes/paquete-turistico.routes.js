@@ -4,29 +4,29 @@ const authMiddleware = require('../middlewares/auth.middleware');
 
 const paqueteTuristicoRoutes = express.Router();
 
-paqueteTuristicoRoutes.use(authMiddleware.verifyUserToken);
-
 paqueteTuristicoRoutes.get(
   '/',
   paqueteTuristicoController.getPaquetesTuristicos,
 );
 paqueteTuristicoRoutes.post(
   '/',
+  authMiddleware.verifyUserToken,
   authMiddleware.authorizeByRole(['Gerente']),
   paqueteTuristicoController.createPaqueteTuristico,
 );
 paqueteTuristicoRoutes.get(
   '/:id',
-  authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']),
   paqueteTuristicoController.getPaqueteTuristicoById,
 );
 paqueteTuristicoRoutes.put(
   '/:id',
+  authMiddleware.verifyUserToken,
   authMiddleware.authorizeByRole(['Gerente']),
   paqueteTuristicoController.updatePaqueteTuristico,
 );
 paqueteTuristicoRoutes.delete(
   '/:id',
+  authMiddleware.verifyUserToken,
   authMiddleware.authorizeByRole(['Gerente']),
   paqueteTuristicoController.deletePaqueteTuristico,
 );
