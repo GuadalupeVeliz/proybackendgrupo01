@@ -28,6 +28,11 @@ const Usuario = sequelize.define(
       defaultValue: false,
       allowNull: false,
     },
+    googleId: {
+      type: DataTypes.TEXT,
+      unique: true,
+      allowNull: true,
+    }
   },
   {
     tableName: 'usuarios',

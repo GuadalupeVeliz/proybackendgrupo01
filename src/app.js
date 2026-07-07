@@ -8,6 +8,7 @@ const swaggerFile = require('../swagger-output.json');
 //require('../config/passport.config');
 
 const authRoutes = require('./routes/auth.routes');
+const googleAuthRoutes = require('./routes/google-auth.routes');
 const usuarioRoutes = require('./routes/usuario.routes');
 const empleadoRoutes = require('./routes/empleado.routes');
 const clienteRoutes = require('./routes/cliente.routes');
@@ -34,6 +35,7 @@ app.use(
 
 app.use('/api/v1/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/auth/google', googleAuthRoutes);
 app.use('/api/v1/usuarios', usuarioRoutes);
 app.use('/api/v1/empleados', empleadoRoutes);
 app.use('/api/v1/clientes', clienteRoutes);

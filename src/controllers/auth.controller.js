@@ -4,6 +4,7 @@ const authController = {};
 
 authController.signUp = async (req, res) => {
   try {
+    console.log('body en authController.signUp() ->', req.body);
     const { token, usuario } = await authService.signUp(req.body);
     const { clave, ...usuarioWithoutClave } = usuario.toJSON();
     return res.status(201).json({

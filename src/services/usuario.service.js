@@ -20,6 +20,21 @@ usuarioService.addUsuario = async (data) => {
     );
   }
 
+  if (data.googleId) {
+    const existingCorreoElectronicoDeGoogle = await Usuario.findOne({
+      where: {
+        googleId: data.googleId,
+        eliminado: false,
+      },
+    });
+
+    if (existingCorreoElectronicoDeGoogle) {
+      throw new Error(
+        'El correo electrónico de Google ya está registrado (puede que pertenezca a un usuario dado de baja).',
+      );
+    }
+  }
+
   if (data.clave) {
     const salt = await bcrypt.genSalt(10);
     const encryptedClave = await bcrypt.hash(data.clave, salt);
@@ -29,6 +44,7 @@ usuarioService.addUsuario = async (data) => {
   const newUsuario = await Usuario.create(data);
 
   if (data.legajo) {
+    newUsuario.rol = data.esGerente ? "Gerente" : "Recepcionista";
     await empleadoService.addEmpleado({
       legajo: data.legajo,
       sede: data.sede,
