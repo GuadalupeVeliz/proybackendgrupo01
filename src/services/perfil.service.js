@@ -51,9 +51,11 @@ perfilService.editPerfil = async (id, updates) => {
     mappedData.correoElectronico = updates.correoElectronico;
   }
 
-  if (updates.contrasena) {
+  const nuevaClave = updates.clave ?? updates.contrasena;
+
+  if (nuevaClave) {
     const salt = await bcrypt.genSalt(10);
-    mappedData.contrasena = await bcrypt.hash(updates.contrasena, salt);
+    mappedData.clave = await bcrypt.hash(nuevaClave, salt);
   }
 
   if (Object.keys(mappedData).length > 0) {

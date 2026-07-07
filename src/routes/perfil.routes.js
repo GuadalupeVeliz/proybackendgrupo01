@@ -5,7 +5,7 @@ const perfilController = require('../controllers/perfil.controller');
 const perfilRoutes = express.Router();
 
 perfilRoutes.use(authMiddleware.verifyUserToken);
-perfilRoutes.use(authMiddleware.authorizeByRole(['Gerente', 'Cliente']));
+perfilRoutes.use(authMiddleware.authorizeByRole(['Gerente', 'Recepcionista', 'Cliente']));
 
 perfilRoutes.get('/', perfilController.getPerfil);
 perfilRoutes.put('/', perfilController.updatePerfil);
