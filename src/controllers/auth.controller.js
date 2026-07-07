@@ -17,11 +17,11 @@ authController.signUp = async (req, res) => {
 
 authController.login = async (req, res) => {
   try {
-    const { token, rol } = await authService.login(req.body.correoElectronico, req.body.clave);
+    const { token, rol, clienteId } = await authService.login(req.body.correoElectronico, req.body.clave);
 
     return res.status(200).json({
       success: true,
-      data: { token: token, rol: rol },
+      data: { token: token, rol: rol, clienteId: clienteId },
     });
   } catch (error) {
     return res.status(401).json({ success: false, error: error.message });
