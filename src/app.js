@@ -29,7 +29,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({ // 'http://172.20.0.3:4200' ||
-    origin: `http://${CLIENT_HOST}:${CLIENT_PORT}`,
+    origin: `https://proyfrontendgrupo01-6r0q.onrender.com`,
   }),
 );
 
