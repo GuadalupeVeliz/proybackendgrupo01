@@ -4,7 +4,7 @@ const app = require('./src/app');
 const PORT = process.env.PORT || 3000;
 
 sequelize
-  .sync({ alter: true })
+  .sync()
   .then(() => {
     console.log('Tablas de PostgreSQL Sincronizadas');
     app.listen(PORT, () => {
