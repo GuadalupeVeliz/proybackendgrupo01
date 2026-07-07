@@ -8,6 +8,11 @@ const { sendEmail } = require('../services/email.service');
 const authService = {};
 
 authService.signUp = async (data) => {
+  if (data.token) {
+    const payload = jwt.verify(data.token, process.env.JWT_TEMP_SECRET);
+    data.googleId = payload.sub;
+  }
+
   const newUsuario = await usuarioService.addUsuario(data);
 
   const rol = getRol(newUsuario);
