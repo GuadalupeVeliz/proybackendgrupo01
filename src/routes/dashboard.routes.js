@@ -4,7 +4,7 @@ const authMiddleware = require('../middlewares/auth.middleware');
 
 const dashboardRoutes = express.Router();
 
-dashboardRoutes.use(authMiddleware.verifyToken);
+dashboardRoutes.use(authMiddleware.verifyUserToken);
 
 dashboardRoutes.get("/resumen", dashboardController.getResumen);
 dashboardRoutes.get("/reservas-por-mes", dashboardController.getReservasPorMes);
