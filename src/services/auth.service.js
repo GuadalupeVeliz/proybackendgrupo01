@@ -61,8 +61,8 @@ authService.login = async (correoElectronico, clave) => {
       expiresIn: '1h',
     },
   );
-
-  return { token, rol };
+  const clienteId = existingUsuario.cliente?.id ?? null
+  return { token, rol, clienteId };
 };
 
 module.exports = authService;
