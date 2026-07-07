@@ -4,8 +4,8 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerFile = require('../swagger-output.json');
 
-const passport = require('passport');
-require('../config/passport.config');
+//const passport = require('passport');
+//require('../config/passport.config');
 
 const authRoutes = require('./routes/auth.routes');
 const usuarioRoutes = require('./routes/usuario.routes');
@@ -24,11 +24,11 @@ const CLIENT_HOST = process.env.CLIENT_HOST || 'localhost';
 
 const app = express();
 
-app.use(passport.initialize());
+//app.use(passport.initialize());
 app.use(express.json());
 app.use(
-  cors({
-    origin: 'http://172.20.0.3:4200' || `http://${CLIENT_HOST}:${CLIENT_PORT}`,
+  cors({ // 'http://172.20.0.3:4200' ||
+    origin: `http://${CLIENT_HOST}:${CLIENT_PORT}`,
   }),
 );
 
