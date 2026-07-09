@@ -15,13 +15,11 @@ googleAuthService.signup = async (credential) => {
 
   const { sub, email, name, picture } = ticket.getPayload();
 
-  const token = jwt.sign(
-    { sub },
-    process.env.JWT_TEMP_SECRET,
-    { expiresIn: '3m' }
-  );
+  const tempToken = jwt.sign({ sub }, process.env.JWT_TEMP_SECRET, {
+    expiresIn: '10m',
+  });
 
-  return { token, email, name, picture }
+  return { tempToken, email, name, picture };
 };
 
 googleAuthService.signin = async (credential) => {
@@ -36,7 +34,7 @@ googleAuthService.signin = async (credential) => {
     throw new Error('Credenciales de Google incompletas.');
   }
 
-  const existingUsuario = await Usuario.findOne({
+  const usuarioEncontrado = await Usuario.findOne({
     where: {
       googleId: sub,
       eliminado: false,
@@ -47,28 +45,25 @@ googleAuthService.signin = async (credential) => {
     ],
   });
 
-  if (!existingUsuario) {
+  if (!usuarioEncontrado) {
     throw new Error('Usuario no encontrado o dado de baja.');
   }
 
-  const rol = getRol(existingUsuario);
-
-  let payload = {};
-  payload.rol = rol;
-
-  if (rol === 'Cliente') {
-    payload.clienteId = existingUsuario.cliente.id;
-  } else {
-    payload.empleadoId = existingUsuario.empleado.id;
-  }
+  const rol = getRol(usuarioEncontrado);
 
   const token = jwt.sign(
-    payload,
+    { usuarioId: usuarioEncontrado.id, rol },
     process.env.JWT_SECRET_KEY,
     { expiresIn: '1h' },
   );
 
-  return { token, correo: email, ...payload };
+  return {
+    token,
+    correo: email,
+    rol,
+    clienteId: usuarioEncontrado.cliente?.id ?? null,
+    empleadoId: usuarioEncontrado.empleado?.id ?? null,
+  };
 };
 
 module.exports = googleAuthService;

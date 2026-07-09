@@ -3,19 +3,13 @@ const { Op } = require('sequelize');
 
 const clienteService = {};
 
-clienteService.addCliente = async (data) => {
+clienteService.addCliente = async (data, transaction = null) => {
   const existingDni = await Cliente.findOne({
-    where: {
-      dni: data.dni,
-      eliminado: false,
-    },
+    where: { dni: data.dni, eliminado: false },
+    transaction,
   });
-
-  if (existingDni) {
-    throw new Error('El dni se encuentra registrado.');
-  }
-
-  return await Cliente.create(data);
+  if (existingDni) throw new Error('El dni se encuentra registrado.');
+  return await Cliente.create(data, { transaction });
 };
 
 clienteService.findClientes = async (filters = { eliminado: false }) => {
