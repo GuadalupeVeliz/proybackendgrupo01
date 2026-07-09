@@ -3,7 +3,6 @@ const bcrypt = require('bcryptjs');
 const usuarioService = require('../services/usuario.service');
 const { Usuario, Cliente, Empleado } = require('../models');
 const getRol = require('../utils/rol.util');
-const { sendEmail } = require('../services/email.service');
 
 const authService = {};
 
@@ -13,19 +12,35 @@ authService.signUp = async (data) => {
     data.googleId = payload.sub;
   }
 
-  const newUsuario = await usuarioService.addUsuario(data);
+  delete data.legajo;
+  delete data.sede;
+  delete data.esGerente;
 
-  const rol = getRol(newUsuario);
+  const nuevoUsuario = await usuarioService.addUsuario(data);
+
+  const usuarioCompleto = await Usuario.findByPk(nuevoUsuario.id, {
+    include: [
+      { model: Cliente, as: 'cliente' },
+      { model: Empleado, as: 'empleado' },
+    ],
+  });
+
+  const rol = getRol(usuarioCompleto);
+
   const token = jwt.sign(
-    {
-      usuarioId: newUsuario.id,
-      rol: rol,
-    },
+    { usuarioId: usuarioCompleto.id, rol },
     process.env.JWT_SECRET_KEY,
     { expiresIn: '1h' },
   );
 
-  return { token: token, usuario: newUsuario };
+  return {
+    token: token,
+    rol: rol,
+    correo: usuarioCompleto.correoElectronico,
+    clienteId: usuarioCompleto.cliente?.id ?? null,
+    empleadoId: null,
+    usuario: usuarioCompleto,
+  };
 };
 
 authService.login = async (correoElectronico, clave) => {
@@ -33,7 +48,7 @@ authService.login = async (correoElectronico, clave) => {
     throw new Error('Credenciales incorrectas.');
   }
 
-  const existingUsuario = await Usuario.findOne({
+  const usuarioEncontrado = await Usuario.findOne({
     where: {
       correoElectronico: correoElectronico,
       eliminado: false,
@@ -44,30 +59,37 @@ authService.login = async (correoElectronico, clave) => {
     ],
   });
 
-  if (!existingUsuario) {
+  if (!usuarioEncontrado) {
     throw new Error('Usuario no encontrado o dado de baja.');
   }
 
-  const isClaveValid = await bcrypt.compare(clave, existingUsuario.clave);
+  if (!usuarioEncontrado.clave) {
+    throw new Error(
+      'Esta cuenta se registró con Google. Iniciá sesión con el botón de Google.',
+    );
+  }
 
-  if (!isClaveValid) {
+  const isContrasenaCorrecta = await bcrypt.compare(clave, usuarioEncontrado.clave);
+
+  if (!isContrasenaCorrecta) {
     throw new Error('Contraseña incorrecta.');
   }
 
-  const rol = getRol(existingUsuario);
+  const rol = getRol(usuarioEncontrado);
 
   const token = jwt.sign(
-    {
-      usuarioId: existingUsuario.id,
-      rol: rol,
-    },
+    { usuarioId: usuarioEncontrado.id, rol },
     process.env.JWT_SECRET_KEY,
-    {
-      expiresIn: '1h',
-    },
+    { expiresIn: '1h' },
   );
-  const clienteId = existingUsuario.cliente?.id ?? null
-  return { token, rol, clienteId };
+
+  return {
+    token,
+    rol,
+    correo: usuarioEncontrado.correoElectronico,
+    clienteId: usuarioEncontrado.cliente?.id ?? null,
+    empleadoId: usuarioEncontrado.empleado?.id ?? null,
+  };
 };
 
 module.exports = authService;

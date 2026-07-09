@@ -1,69 +1,80 @@
 const { Cliente, Empleado, Usuario } = require('../models');
 const { Op } = require('sequelize');
 const bcrypt = require('bcryptjs');
+const sequelize = require('../../config/database.config');
 const empleadoService = require('../services/empleado.service');
 const clienteService = require('../services/cliente.service');
 
 const usuarioService = {};
 
 usuarioService.addUsuario = async (data) => {
-  const existingCorreoElectronico = await Usuario.findOne({
+  const correoEncontrado = await Usuario.findOne({
     where: {
       correoElectronico: data.correoElectronico,
       eliminado: false,
     },
   });
 
-  if (existingCorreoElectronico) {
+  if (correoEncontrado) {
     throw new Error(
       'El correo electrónico ya está registrado (puede que pertenezca a un usuario dado de baja).',
     );
   }
 
   if (data.googleId) {
-    const existingCorreoElectronicoDeGoogle = await Usuario.findOne({
+    const GoogleIdEncontrado = await Usuario.findOne({
       where: {
         googleId: data.googleId,
         eliminado: false,
       },
     });
 
-    if (existingCorreoElectronicoDeGoogle) {
+    if (GoogleIdEncontrado) {
       throw new Error(
-        'El correo electrónico de Google ya está registrado (puede que pertenezca a un usuario dado de baja).',
+        'La cuenta de Google ya está registrada (puede que pertenezca a un usuario dado de baja).',
       );
     }
   }
 
+  if (!data.clave && !data.googleId) {
+    throw new Error('Se requiere una contraseña o una cuenta de Google.');
+  }
+
   if (data.clave) {
     const salt = await bcrypt.genSalt(10);
-    const encryptedClave = await bcrypt.hash(data.clave, salt);
-    data.clave = encryptedClave;
+    data.clave = await bcrypt.hash(data.clave, salt);
   }
 
-  const newUsuario = await Usuario.create(data);
+  return await sequelize.transaction(async (transaction) => {
+    const nuevoUsuario = await Usuario.create(data, { transaction });
 
-  if (data.legajo) {
-    newUsuario.rol = data.esGerente ? "Gerente" : "Recepcionista";
-    await empleadoService.addEmpleado({
-      legajo: data.legajo,
-      sede: data.sede,
-      esGerente: data.esGerente,
-      usuarioId: newUsuario.id,
-    });
-  } else if (data.dni) {
-    await clienteService.addCliente({
-      dni: data.dni,
-      nombreCompleto: data.nombreCompleto,
-      telefono: data.telefono,
-      usuarioId: newUsuario.id,
-    });
-  } else {
-    await newUsuario.destroy();
-    throw new Error('No se proporcionaron datos suficientes para crear un perfil de usuario.');
-  }
+    if (data.legajo) {
+      nuevoUsuario.rol = data.esGerente ? 'Gerente' : 'Recepcionista';
+      await empleadoService.addEmpleado(
+        {
+          legajo: data.legajo,
+          sede: data.sede.toLowerCase(),
+          esGerente: data.esGerente,
+          usuarioId: nuevoUsuario.id,
+        },
+        transaction,
+      );
+    } else if (data.dni) {
+      await clienteService.addCliente(
+        {
+          dni: data.dni,
+          nombreCompleto: data.nombreCompleto,
+          telefono: data.telefono,
+          usuarioId: nuevoUsuario.id,
+        },
+        transaction,
+      );
+    } else {
+      throw new Error('No se proporcionaron datos suficientes para crear un perfil de usuario.');
+    }
 
-  return newUsuario;
+    return nuevoUsuario;
+  });
 };
 
 usuarioService.findUsuarios = async (filters = { eliminado: false }) => {
@@ -76,7 +87,7 @@ usuarioService.findUsuarioById = async (id) => {
   });
 
   if (!existingUsuario) {
-    throw new Error('Usuario no encontrado o dado de bajo.');
+    throw new Error('Usuario no encontrado o dado de baja.');
   }
 
   return existingUsuario;
@@ -88,7 +99,7 @@ usuarioService.editUsuario = async (id, updates) => {
   });
 
   if (!existingUsuario) {
-    throw new Error('Usuario no encontrado o dado de bajo.');
+    throw new Error('Usuario no encontrado o dado de baja.');
   }
 
   if (updates.correoElectronico) {
@@ -121,7 +132,7 @@ usuarioService.deleteUsuario = async (id) => {
   });
 
   if (!existingUsuario) {
-    throw new Error('Usuario no encontrado o dado de bajo.');
+    throw new Error('Usuario no encontrado o dado de baja.');
   }
 
   return await existingUsuario.update({ eliminado: true });

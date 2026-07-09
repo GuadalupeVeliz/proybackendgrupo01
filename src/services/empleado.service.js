@@ -3,19 +3,13 @@ const { Op } = require('sequelize');
 
 const empleadoService = {};
 
-empleadoService.addEmpleado = async (data) => {
-  const existingLegajo = await Empleado.findOne({
-    where: {
-      legajo: data.legajo,
-      eliminado: false,
-    },
+empleadoService.addCliente = async (data, transaction = null) => {
+  const existingLegajo = await Cliente.findOne({
+    where: { legajo: data.legajo, eliminado: false },
+    transaction,
   });
-
-  if (existingLegajo) {
-    throw new Error('El legajo se encuentra registrado.');
-  }
-
-  return await Empleado.create(data);
+  if (existingLegajo) throw new Error('El legajo se encuentra registrado.');
+  return await Cliente.create(data, { transaction });
 };
 
 empleadoService.findEmpleados = async (filters = { eliminado: false }) => {
@@ -25,53 +19,53 @@ empleadoService.findEmpleados = async (filters = { eliminado: false }) => {
 };
 
 empleadoService.findEmpleadoById = async (id) => {
-  const empleado = await Empleado.findOne({
+  const empleadoEncontrado = await Empleado.findOne({
     where: { id: id, eliminado: false },
   });
 
-  if (!empleado) {
+  if (!empleadoEncontrado) {
     throw new Error('Empleado no encontrado o dado de baja.');
   }
 
-  return empleado;
+  return empleadoEncontrado;
 };
 
-empleadoService.editEmpleado = async (id, updates) => {
-  const existingEmpleado = await Empleado.findOne({
+empleadoService.editEmpleado = async (id, actualizaciones) => {
+  const empleadoEncontrado = await Empleado.findOne({
     where: { id: id, eliminado: false },
   });
 
-  if (!existingEmpleado) {
+  if (!empleadoEncontrado) {
     throw new Error('Empleado no encontrado o dado de baja.');
   }
 
-  if (updates.legajo) {
-    const existingLegajo = await Empleado.findOne({
+  if (actualizaciones.legajo) {
+    const legajoEncontrado = await Empleado.findOne({
       where: {
-        legajo: updates.legajo,
+        legajo: actualizaciones.legajo,
         eliminado: false,
         id: { [Op.ne]: id },
       },
     });
 
-    if (existingLegajo) {
+    if (legajoEncontrado) {
       throw new Error('El legajo ya se encuentra registrado por otro empleado.');
     }
   }
 
-  return await existingEmpleado.update(updates);
+  return await empleadoEncontrado.update(actualizaciones);
 };
 
 empleadoService.deleteEmpleado = async (id) => {
-  const existingEmpleado = await Empleado.findOne({
+  const empleadoEncontrado = await Empleado.findOne({
     where: { id: id, eliminado: false },
   });
 
-  if (!existingEmpleado) {
+  if (!empleadoEncontrado) {
     throw new Error('Empleado no encontrado o ya eliminado.');
   }
 
-  return await existingEmpleado.update({ eliminado: true });
+  return await empleadoEncontrado.update({ eliminado: true });
 };
 
 module.exports = empleadoService;

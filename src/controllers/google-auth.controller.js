@@ -5,29 +5,35 @@ const googleAuthController = {};
 googleAuthController.signup = async (req, res) => {
   try {
     const { credential } = req.body;
-    const { token, email, name, picture } = await googleAuthService.signup(credential);
+    const data = await googleAuthService.signup(credential);
 
-    res.status(200).json({ token, email, name, picture });
+    return res.status(200).json({
+      success: true,
+      data: data,
+    });
   } catch (error) {
-    console.error('Error en /signup:', error.message);
-    res.status(401).json({ error: 'Token de Google inválido' });
+    console.error('Error en google signup:', error.message);
+    return res.status(401).json({
+      success: false,
+      error: 'Token de Google inválido',
+    });
   }
 };
 
 googleAuthController.signin = async (req, res) => {
   try {
     const { credential } = req.body;
-    const { token, email, ...payload } = await googleAuthService.signin(credential);
+    const data = await googleAuthService.signin(credential);
 
     return res.status(200).json({
       success: true,
-      data: { token, email, ...payload },
+      data: data,
     });
   } catch (error) {
-    console.error(error.message);
+    console.error('Error en google signin:', error.message);
     return res.status(401).json({
       success: false,
-      error: error.mesagge
+      error: error.message,
     });
   }
 };

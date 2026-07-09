@@ -16,7 +16,7 @@ const Usuario = sequelize.define(
     },
     clave: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     ultimoAcceso: {
       type: DataTypes.DATE,

@@ -4,28 +4,35 @@ const authController = {};
 
 authController.signUp = async (req, res) => {
   try {
-    console.log('body en authController.signUp() ->', req.body);
-    const { token, usuario } = await authService.signUp(req.body);
-    const { clave, ...usuarioWithoutClave } = usuario.toJSON();
+    const { usuario, ...data } = await authService.signUp(req.body);
+    const { clave, ...usuarioSinClave } = usuario.toJSON();
+
     return res.status(201).json({
       success: true,
-      data: { token: token, usuario: usuarioWithoutClave },
+      data: { ...data, usuario: usuarioSinClave },
     });
   } catch (error) {
-    return res.status(400).json({ success: false, error: error.message });
+    return res.status(400).json({
+      success: false,
+      error: error.message
+    });
   }
 };
 
 authController.login = async (req, res) => {
   try {
-    const { token, rol, clienteId } = await authService.login(req.body.correoElectronico, req.body.clave);
+    const { correoElectronico, clave } = req.body;
+    const data = await authService.login(correoElectronico, clave);
 
     return res.status(200).json({
       success: true,
-      data: { token: token, rol: rol, clienteId: clienteId },
+      data: data
     });
   } catch (error) {
-    return res.status(401).json({ success: false, error: error.message });
+    return res.status(401).json({
+      success: false,
+      error: error.message
+    });
   }
 };
 
@@ -39,7 +46,10 @@ authController.logout = async (req, res) => {
       },
     });
   } catch (error) {
-    return res.status(500).json({ success: false, error: error.message });
+    return res.status(500).json({
+      success: false,
+      error: error.message
+    });
   }
 };
 

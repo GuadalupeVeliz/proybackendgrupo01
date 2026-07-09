@@ -5,7 +5,8 @@ const usuarioController = {};
 usuarioController.createUsuario = async (req, res) => {
   try {
     const usuario = await usuarioService.addUsuario(req.body);
-    return res.status(201).json({ success: true, data: usuario });
+    const { clave, ...usuarioSinClave } = usuario.toJSON();
+    return res.status(201).json({ success: true, data: usuarioSinClave });
   } catch (error) {
     return res.status(400).json({ success: false, error: error.message });
   }
