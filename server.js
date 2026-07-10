@@ -1,5 +1,6 @@
 const sequelize = require('./config/database.config');
 const app = require('./src/app');
+require('./src/jobs/cronJobs');
 
 const PORT = process.env.PORT || 3000;
 
