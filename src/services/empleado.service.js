@@ -3,13 +3,13 @@ const { Op } = require('sequelize');
 
 const empleadoService = {};
 
-empleadoService.addCliente = async (data, transaction = null) => {
-  const existingLegajo = await Cliente.findOne({
+empleadoService.addEmpleado = async (data, transaction = null) => {
+  const existingLegajo = await Empleado.findOne({
     where: { legajo: data.legajo, eliminado: false },
     transaction,
   });
   if (existingLegajo) throw new Error('El legajo se encuentra registrado.');
-  return await Cliente.create(data, { transaction });
+  return await Empleado.create(data, { transaction });
 };
 
 empleadoService.findEmpleados = async (filters = { eliminado: false }) => {

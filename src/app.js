@@ -3,6 +3,7 @@ const cors = require('cors');
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerFile = require('../swagger-output.json');
+const path = require('path');
 
 //const passport = require('passport');
 //require('../config/passport.config');
@@ -27,6 +28,7 @@ const CLIENT_HOST = process.env.CLIENT_HOST || 'localhost';
 const app = express();
 
 //app.use(passport.initialize());
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use(express.json());
 app.use(
   cors({ // 'http://172.20.0.3:4200' ||
