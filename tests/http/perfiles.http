@@ -1,0 +1,25 @@
+# perfiles.http
+@baseUrl=http://localhost:3000/api/v1/perfiles
+# @import ./auth.http
+# @ref loggedGerente
+# @ref loggedRecepcionista
+# @ref loggedCliente
+
+### GET OWN Perfil (Todos)
+GET {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### UPDATE OWN Perfil (Usuario)
+PUT {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "correoElectronico": "nuevo-correo@world.com",
+    "clave": "super-clave-segura"
+}

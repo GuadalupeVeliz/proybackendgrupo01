@@ -1,0 +1,52 @@
+# pagos.http
+@baseUrl=http://localhost:3000/api/v1/pagos
+# @import ./auth.http
+# @ref loggedGerente
+# @ref loggedRecepcionista
+# @ref loggedCliente
+
+### GET Pagos (Gerente y Recepcionista)
+GET {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.token}}
+# Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+### CREATE Pago (Gerente y Recepcionista)
+POST {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.token}}
+# Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+{
+  "reservaId": 1,
+  "monto": 3703.68,
+  "metodoPago": "TARJETA_CREDITO"
+}
+
+### GET Pago BY ID (Gerente y Recepcionista)
+GET {{baseUrl}}/1
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.token}}
+Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+### UPDATE Pago (Gerente y Recepcionista)
+PUT {{baseUrl}}/1
+Content-Type: application/json
+# Authorization: Bearer {{loggedGerente.token}}
+Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}
+
+{
+    "monto": 4000,
+    "metodoPago": "TRANSFERENCIA"
+}
+
+### DELETE Pago (Gerente y Recepcionista)
+DELETE {{baseUrl}}/1
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.token}}
+# Authorization: Bearer {{loggedRecepcionista.token}}
+# Authorization: Bearer {{loggedCliente.token}}

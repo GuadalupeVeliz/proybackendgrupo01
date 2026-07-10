@@ -1,0 +1,109 @@
+const dashboardService = require("../services/dashboard.service");
+
+const dashboardController = {};
+
+dashboardController.getResumen = async (req, res) => {
+  try {
+    const resumen = await dashboardService.getResumen();
+    res.status(200).json(resumen);
+  } catch (error) {
+    console.error("Error en getResumen:", error);
+    res
+      .status(500)
+      .json({ mensaje: "Error al obtener el resumen del dashboard" });
+  }
+};
+
+dashboardController.getReservasPorMes = async (req, res) => {
+  try {
+    const { anio = new Date().getFullYear() } = req.query;
+    const reservasPorMes = await dashboardService.getReservasPorMes(anio);
+    res.status(200).json(reservasPorMes);
+  } catch (error) {
+    console.error("Error en getReservasPorMes:", error);
+    res.status(500).json({ mensaje: "Error al obtener reservas por mes." });
+  }
+};
+
+dashboardController.getReservasPorEstado = async (req, res) => {
+  try {
+    const reservasPorEstado = await dashboardService.getReservasPorEstado();
+    res.status(200).json(reservasPorEstado);
+  } catch (error) {
+
+    console.error("Error en getReservasPorEstado:", error);
+    res.status(500).json({ mensaje: "Error al obtener reservas por estado" });
+  }
+};
+
+dashboardController.getIngresosEvolucion = async (req, res) => {
+  try {
+    const { desde, hasta } = req.query;
+    const evolucionIngresos = await dashboardService.getIngresosEvolucion(
+      desde,
+      hasta,
+    );
+    res.status(200).json(evolucionIngresos);
+  } catch (error) {
+    console.error("Error en getIngresosEvolucion:", error);
+    res
+      .status(500)
+      .json({ mensaje: "Error al obtener los ingresos en evolucion" });
+  }
+};
+
+dashboardController.getReservas = async (req, res) => {
+  try {
+    const { estado, search, page = 1, limit = 10 } = req.query;
+    const reservas = await dashboardService.getReservas({
+      estado,
+      search,
+      page,
+      limit,
+    });
+    res.status(200).json(reservas);
+  } catch (error) {
+    console.error("Error en getReservas:", error);
+    res.status(500).json({ mensaje: "Error al obtener las Reservas" });
+  }
+};
+
+dashboardController.exportarPDF = async (req, res) => {
+  try {
+    const anio = req.query.anio ? parseInt(req.query.anio, 10) : new Date().getFullYear();
+
+    const pdfBuffer = await dashboardService.generarPDF(anio);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=reporte-dashboard-${anio}.pdf`,
+      'Content-Length': pdfBuffer.length,
+    });
+
+    return res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Error generando PDF:', error);
+    return res.status(500).json({ mensaje: 'Error al generar el PDF', error: error.message });
+  }
+};
+
+dashboardController.exportarExcel = async (req, res) => {
+  try {
+    const anio = req.query.anio ? parseInt(req.query.anio, 10) : new Date().getFullYear();
+
+    const excelBuffer = await dashboardService.generarExcel(anio);
+
+    res.set({
+      'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'Content-Disposition': `attachment; filename=reporte-dashboard-${anio}.xlsx`,
+      'Content-Length': excelBuffer.length,
+    });
+
+    return res.send(excelBuffer);
+  } catch (error) {
+    console.error('Error generando Excel:', error);
+    return res.status(500).json({ mensaje: 'Error al generar el Excel', error: error.message });
+  }
+};
+
+module.exports = dashboardController;

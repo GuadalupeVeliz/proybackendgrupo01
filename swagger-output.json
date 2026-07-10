@@ -1,0 +1,15 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "API Turismo del Norte'",
+    "description": "Documentación de la API para el sistema de gestión de reservas turísticas Turismo del Norte.",
+    "version": "1.0.0"
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "paths": {}
+}

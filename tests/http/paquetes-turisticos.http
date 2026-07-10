@@ -1,0 +1,53 @@
+# paquetes-turisticos.http
+@baseUrl=http://localhost:3000/api/v1/paquetes-turisticos
+# @import ./auth.http
+# @ref loggedGerente
+# @ref loggedRecepcionista
+# @ref loggedCliente
+
+### GET PaquetesTuristicos (Todos)
+GET {{baseUrl}}?lang=en
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+#Authorization: Bearer {{loggedCliente.data.token}}
+
+### CREATE PaquetesTuristico (Gerente)
+POST {{baseUrl}}
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "nombre": "Aventura Total Salinas",
+    "ubicacion": "Jujuy",
+    "descripcion": "Tour completo por las salinas.",
+    "duracionEnDias": 3,
+    "precioBase": 1234.56
+}
+
+### GET PaquetesTuristico BY ID (Todos)
+GET {{baseUrl}}/1?lang=fr
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+### UPDATE PaquetesTuristico (Gerente)
+PUT {{baseUrl}}/1
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
+
+{
+    "duracionEnDias": 7
+}
+
+### DELETE PaquetesTuristico (Gerente)
+DELETE {{baseUrl}}/1
+Content-Type: application/json
+Authorization: Bearer {{loggedGerente.data.token}}
+# Authorization: Bearer {{loggedRecepcionista.data.token}}
+# Authorization: Bearer {{loggedCliente.data.token}}
