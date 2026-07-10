@@ -138,14 +138,18 @@ reservaController.getReservasByClienteId = async (req, res) => {
 
 reservaController.checkoutReserva = async (req, res) => {
   try {
-    const reserva = await reservaService.checkoutReserva(req.params.id, req.body);
-    await auditoriaService.registrarCreate(req,{
-      accion: 'Confirmar', 
-      modelo: 'Reserva',
-      resultado: 'OK',
-      entidadId: reserva.id
-    })
-    return res.status(200).json({ success: true, data: reserva });
+    // const reserva = await reservaService.checkoutReserva(req.params.id, req.body);
+    // await auditoriaService.registrarCreate(req,{
+    //   accion: 'Confirmar', 
+    //   modelo: 'Reserva',
+    //   resultado: 'OK',
+    //   entidadId: reserva.id
+    // })
+    // return res.status(200).json({ success: true, data: reserva });
+
+    const { initPoint } = await reservaService.checkoutReserva(req.params.id);
+    return res.status(200).json({ success: true, data: { init_point: initPoint } });
+
   } catch (error) {
     await auditoriaService.registrarCreate(req,{
       accion: 'Confirmar', 

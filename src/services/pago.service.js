@@ -1,4 +1,6 @@
 const { Pago, Reserva, Comprobante } = require('../models');
+const mercadoPagoService = require('./mercado-pago.service');
+const sequelize = require('../../config/database.config');
 const comprobanteService = require('./comprobante.service');
 
 const pagoService = {};
@@ -96,6 +98,72 @@ pagoService.deletePago = async (id) => {
   }
 
   return await existingPago.update({ estado: 'pendiente', eliminado: true });
+};
+
+pagoService.iniciarPagoMP = async (reserva) => {
+  const paquete = reserva.vacante.paqueteTuristico;
+  const monto = Number(paquete.precioBase) * reserva.cantidadDePersonas;
+
+  const pref = await mercadoPagoService.createPreference({
+    paquete,
+    cantidad: reserva.cantidadDePersonas,
+    reservaId: reserva.id,
+  });
+
+  await Pago.create({
+    reservaId: reserva.id,
+    mpPreferenceId: pref.id,
+    monto,
+    metodoPago: 'MERCADO_PAGO',
+    estado: 'pendiente',
+  });
+
+  return pref.init_point;
+};
+
+pagoService.procesarWebhook = async (paymentId) => {
+  const pagoMP = await mercadoPagoService.getPayment(paymentId);
+  const reservaId = Number(pagoMP.external_reference);
+  const t = await sequelize.transaction();
+  try {
+    const pago = await Pago.findOne({
+      where: { reservaId, metodoPago: 'MERCADO_PAGO', eliminado: false },
+      transaction: t,
+    });
+
+    if (!pago) { 
+      await t.rollback(); return;
+    }
+
+    if (pago.estado === 'pagado') { 
+      await t.commit(); return;
+    }
+
+    pago.mpPaymentId = String(pagoMP.id);
+
+    if (pagoMP.status === 'approved') {
+      pago.estado = 'pagado';
+      await pago.save({ transaction: t });
+
+      await Reserva.update(
+        { estado: 'confirmada', montoPagado: pago.monto },
+        { where: { id: reservaId }, transaction: t },
+      );
+      await t.commit();
+      await comprobanteService.addComprobanteReserva(reservaId);
+
+    } else if (['rejected', 'cancelled'].includes(pagoMP.status)) {
+      pago.estado = 'rechazado';
+      await pago.save({ transaction: t });
+      await t.commit();
+
+    } else {
+      await t.commit();
+    }
+  } catch (error) {
+    await t.rollback();
+    throw error;
+  }
 };
 
 module.exports = pagoService;

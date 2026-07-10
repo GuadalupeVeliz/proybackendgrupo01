@@ -4,6 +4,8 @@ const authMiddleware = require('../middlewares/auth.middleware');
 
 const pagoRoutes = express.Router();
 
+pagoRoutes.post('/webhook', pagoController.webhook);
+
 pagoRoutes.use(authMiddleware.verifyUserToken);
 pagoRoutes.use(authMiddleware.authorizeByRole(['Gerente', 'Recepcionista']));
 

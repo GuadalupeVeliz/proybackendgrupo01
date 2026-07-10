@@ -1,4 +1,5 @@
 const pagoService = require('../services/pago.service');
+const mercardoPagoService = require('../services/mercado-pago.service');
 
 const pagoController = {};
 
@@ -44,6 +45,18 @@ pagoController.deletePago = async (req, res) => {
     res.status(200).send();
   } catch (error) {
     res.status(404).json({ success: false, error: error.message });
+  }
+};
+
+pagoController.webhook = async (req, res) => {
+  res.sendStatus(200);
+  try {
+    const { type, data } = req.body;
+    if (type === 'payment' && data?.id) {
+      await pagoService.procesarWebhook(data.id);
+    }
+  } catch (error) {
+    console.error('Error en webhook Mercado Pago:', error);
   }
 };
 
