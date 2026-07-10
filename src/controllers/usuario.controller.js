@@ -1,4 +1,5 @@
 const usuarioService = require('../services/usuario.service');
+const auditoriaService = require("../services/auditoria.service");
 
 const usuarioController = {};
 

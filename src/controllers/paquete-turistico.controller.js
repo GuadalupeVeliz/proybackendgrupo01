@@ -1,4 +1,5 @@
 const paqueteTuristicoService = require('../services/paquete-turistico.service');
+const auditoriaService = require("../services/auditoria.service");
 
 const paqueteTuristicoController = {};
 
