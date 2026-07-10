@@ -19,6 +19,7 @@ const reservaRoutes = require('./routes/reserva.routes.js');
 const pagoRoutes = require('./routes/pago.route.js');
 const comprobanteRoutes = require('./routes/comprobante.route.js');
 const dashboardRoutes = require('./routes/dashboard.routes.js');
+const auditoriaRoutes = require('./routes/auditoria.routes.js');
 
 const CLIENT_PORT = process.env.CLIENT_PORT || 4200;
 const CLIENT_HOST = process.env.CLIENT_HOST || 'localhost';
@@ -46,5 +47,6 @@ app.use('/api/v1/reservas', reservaRoutes);
 app.use('/api/v1/pagos', pagoRoutes);
 app.use('/api/v1/comprobantes', comprobanteRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/auditoria', auditoriaRoutes);
 
 module.exports = app;
