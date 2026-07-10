@@ -16,29 +16,29 @@ const Auditoria = sequelize.define('Auditoria', {
     },
     accion: {
         type: DataTypes.STRING,
-        allowNull: false
+        
     },
     modelo: {
         type: DataTypes.STRING,
-        allowNull: false
+        
     },
     entidadId: {
         type: DataTypes.INTEGER
     },
     metodo: {
         type: DataTypes.STRING,
-        allowNull: false
+        
     },
     ruta: {
         type: DataTypes.STRING,
-        allowNull: false
+        
     },
     ip: {
         type: DataTypes.STRING
     },
     resultado: {
         type: DataTypes.STRING,
-        allowNull: false
+        
     },
     detalle: {
         type: DataTypes.TEXT

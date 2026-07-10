@@ -76,7 +76,10 @@ authService.login = async (correoElectronico, clave) => {
   }
 
   const rol = getRol(usuarioEncontrado);
+  const now = new Date();
 
+  usuarioEncontrado.ultimoAcceso = now;
+  await usuarioEncontrado.save();
   const token = jwt.sign(
     { usuarioId: usuarioEncontrado.id, rol },
     process.env.JWT_SECRET_KEY,
@@ -89,6 +92,7 @@ authService.login = async (correoElectronico, clave) => {
     correo: usuarioEncontrado.correoElectronico,
     clienteId: usuarioEncontrado.cliente?.id ?? null,
     empleadoId: usuarioEncontrado.empleado?.id ?? null,
+    usuarioEncontrado
   };
 };
 

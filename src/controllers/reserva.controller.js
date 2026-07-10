@@ -51,7 +51,7 @@ reservaController.getReservaById = async (req, res) => {
       accion: 'Consulta', 
       modelo: 'Reserva',
       resultado: 'OK',
-      entidadId: reserva.id
+      entidadId: req.params.id
     })
     return res.status(200).json({ success: true, data: reserva });
   } catch (error) {
@@ -59,6 +59,7 @@ reservaController.getReservaById = async (req, res) => {
       accion: 'Consulta', 
       modelo: 'Reserva',
       resultado: 'OK',
+      entidadId: req.params.id,
       detalleError:error.message
     })
     return res.status(404).json({ success: false, error: error.message });
@@ -82,7 +83,7 @@ reservaController.updateReserva = async (req, res) => {
       resultado: 'Error',
       entidadId: req.params.id,
       detalleError:error.message
-    })
+    });
     if (error.message.includes('no existe') || error.message.includes('no encontrada')) {
       return res.status(404).json({ success: false, error: error.message });
     }
@@ -97,7 +98,7 @@ reservaController.deleteReserva = async (req, res) => {
       accion: 'Eliminar', 
       modelo: 'Reserva',
       resultado: 'OK',
-      entidadId: reserva.id,
+      entidadId: req.params.id,
     })
     return res.status(204).send();
   } catch (error) {

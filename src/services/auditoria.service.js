@@ -1,9 +1,10 @@
 const { Op } = require("sequelize");
 const Auditoria = require("../models/auditoria.model");
+const { now } = require("sequelize/lib/utils");
 
 const auditoriaService = {};
 
-auditoriaService.registrarCreate = async (req, datos) => {
+auditoriaService.registrarCreate = async (req, datos, usuario = null) => {
     try {
         const {
             accion,
@@ -13,11 +14,13 @@ auditoriaService.registrarCreate = async (req, datos) => {
             detalleError = null
         } = datos;
 
+        const usuarioAuditoria = usuario || req.usuarioLogged;
+
         await Auditoria.create({
-            usuarioId: req.usuarioLogged.dataValues.id,
-            correoElectronico: req.usuarioLogged.dataValues.correoElectronico,
-            rol: req.usuarioLogged.rol,
-            ultimoAcceso: req.usuarioLogged.dataValues.ultimoAcceso,
+            usuarioId: usuarioAuditoria?.id ?? null,
+            correoElectronico: usuarioAuditoria?.correoElectronico ?? null,
+            rol: usuarioAuditoria?.rol ?? null,
+            ultimoAcceso: usuarioAuditoria?.ultimoAcceso ?? null,
             accion,
             modelo,
             entidadId,
@@ -37,6 +40,9 @@ auditoriaService.buscarAuditorias = async (filtros) => {
     const where = {};
     if (filtros.usuarioId) {
         where.usuarioId = filtros.usuarioId;
+    }
+    if (filtros.accion) {
+        where.accion = filtros.accion;
     }
     if (filtros.rol) {
         where.rol = filtros.rol;
