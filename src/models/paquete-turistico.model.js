@@ -40,20 +40,67 @@ const PaqueteTuristico = sequelize.define(
       },
     },
     duracionEnDias: {
-      type: DataTypes.ENUM,
-      values: ['3', '7'],
-      defaultValue: '3',
+      type: DataTypes.INTEGER,
+      values: [3, 7],
+      defaultValue: 3,
       allowNull: false,
       validate: {
         isIn: {
-          args: [['3', '7']],
+          args: [[3, 7]],
           msg: 'La duración debe ser 3 o 7 días.',
         },
       },
     },
-    imagen: {
-      type: DataTypes.STRING(255),
+    imagenes: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: false,
+      defaultValue: [],
+      validate: {
+        notEmpty(value) {
+          if (!value || value.length === 0) {
+            throw new Error('Debe proporcionar al menos una imagen.');
+          }
+        },
+      },
+    },
+    incluye: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: false,
+      defaultValue: [],
+    },
+
+    noIncluye: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: false,
+      defaultValue: [],
+    },
+
+    hotel: {
+      type: DataTypes.STRING(150),
       allowNull: true,
+    },
+
+    puntoDeSalida: {
+      type: DataTypes.STRING(150),
+      allowNull: false,
+      validate: {
+        notEmpty: {
+          msg: 'El punto de salida no puede estar vacío.',
+        },
+      },
+    },
+
+    recomendaciones: {
+      type: DataTypes.ARRAY(DataTypes.STRING),
+      allowNull: false,
+      defaultValue: [],
+    },
+
+    dificultad: {
+      type: DataTypes.ENUM,
+      values: ['baja', 'media', 'alta'],
+      defaultValue: 'baja',
+      allowNull: false,
     },
     estado: {
       type: DataTypes.ENUM,

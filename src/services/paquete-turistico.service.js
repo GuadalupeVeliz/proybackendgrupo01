@@ -118,6 +118,30 @@ paqueteTuristicoService.deletePaqueteTuristico = async (id) => {
     throw new Error('Paquete no encontrado, no disponible o dado de baja.');
   }
 
+  const reservaActiva = await Reserva.findOne({
+    where: {
+      estado: {
+        [Op.in]: ['pendiente', 'confirmada'],
+      },
+    },
+    include: [
+      {
+        model: Vacante,
+        as: 'vacante',
+        where: {
+          paqueteTuristicoId: id,
+          eliminado: false,
+        },
+      },
+    ],
+  });
+
+  if (reservaActiva) {
+    throw new Error(
+      'No se puede eliminar el paquete porque tiene reservas pendientes o confirmadas.',
+    );
+  }
+
   return await existingPaqueteTuristico.update({ eliminado: true });
 };
 
