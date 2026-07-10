@@ -25,7 +25,7 @@ auditoriaService.registrarCreate = async (req, datos) => {
             ruta: req.originalUrl,
             ip: req.ip,
             resultado,
-            detalle: req.body,
+            detalle: JSON.stringify(req.body),
             detalleError
         });
     } catch (error) {

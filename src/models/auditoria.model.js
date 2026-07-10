@@ -42,6 +42,9 @@ const Auditoria = sequelize.define('Auditoria', {
     },
     detalle: {
         type: DataTypes.TEXT
+    },
+    detalleError: {
+        type:DataTypes.STRING
     }
 },
     {

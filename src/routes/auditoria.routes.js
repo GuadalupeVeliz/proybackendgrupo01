@@ -1,7 +1,7 @@
 const auditoriaController = require("../controllers/auditoria.controller");
 const authMiddleware = require("../middlewares/auth.middleware");
 
-const express = require.apply('express');
+const express = require('express');
 const auditoriaRoutes = express.Router();
 
 auditoriaRoutes.use(authMiddleware.verifyUserToken);
