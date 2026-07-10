@@ -12,10 +12,6 @@ authService.signUp = async (data) => {
     data.googleId = payload.sub;
   }
 
-  delete data.legajo;
-  delete data.sede;
-  delete data.esGerente;
-
   const nuevoUsuario = await usuarioService.addUsuario(data);
 
   const usuarioCompleto = await Usuario.findByPk(nuevoUsuario.id, {
@@ -38,7 +34,7 @@ authService.signUp = async (data) => {
     rol: rol,
     correo: usuarioCompleto.correoElectronico,
     clienteId: usuarioCompleto.cliente?.id ?? null,
-    empleadoId: null,
+    empleadoId: usuarioCompleto.empleado?.id ?? null,
     usuario: usuarioCompleto,
   };
 };

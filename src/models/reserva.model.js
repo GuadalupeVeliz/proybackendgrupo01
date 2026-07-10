@@ -46,6 +46,16 @@ const Reserva = sequelize.define(
       defaultValue: false,
       allowNull: false,
     },
+    empleadoId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'empleados',
+        key: 'id',
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL',
+    },
   },
   {
     tableName: 'reservas',
