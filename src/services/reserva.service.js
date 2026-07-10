@@ -1,6 +1,7 @@
 const { Vacante, Reserva, Cliente, PaqueteTuristico, Comprobante } = require('../models');
 const vacanteService = require('./vacante.service');
 const comprobanteService = require('./comprobante.service');
+const { Op } = require('sequelize');
 
 const reservaService = {};
 
@@ -22,6 +23,15 @@ reservaService.addReserva = async (data) => {
 
   if (data.cantidadDePersonas <= 0) {
     throw new Error('La cantidad de personas debe ser mayor a 0.');
+  }
+
+  const fechaReservacion = new Date(data.fechaReservacion);
+  const fechaSalida = new Date(existingVacante.fechaSalida);
+
+  if (fechaReservacion >= fechaSalida) {
+    throw new Error(
+      'La fecha de reservación debe ser anterior a la fecha de salida de la vacante.'
+    );
   }
 
   await vacanteService.actualizarCuposPorReserva(
@@ -116,7 +126,8 @@ reservaService.deleteReserva = async (id) => {
   if (existingReserva.eliminado) {
     throw new Error('La reserva ya fue eliminada previamente.');
   }
-  return await existingReserva.update({ eliminado: true });
+  await vacanteService.restoreCupoDisponible(existingReserva.vacanteId, existingReserva.cantidadDePersonas);
+  return await existingReserva.update({ eliminado: true, estado: 'cancelada' });
 };
 
 reservaService.findReservasByClienteId = async (id) => {
@@ -191,6 +202,41 @@ reservaService.cancelReserva = async (id) => {
   await comprobanteService.addComprobanteCancelacion(reserva.id);
 
   return reserva;
+};
+
+reservaService.cancelarReservasVencidas = async () => {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const reservas = await Reserva.findAll({
+    where: {
+      estado: 'pendiente',
+      eliminado: false
+    },
+    include: [{
+      model: Vacante,
+      as: 'vacante',
+      where: {
+        eliminado: false,
+        fechaDeSalida: {
+          [Op.lt]: hoy
+        }
+      }
+    }]
+  });
+
+  for (const reserva of reservas) {
+    reserva.estado = 'cancelada';
+    await reserva.save();
+    await auditoriaService.registrarSistema({
+      accion: 'Cancelar Automáticamente',
+      modelo: 'Reserva',
+      resultado: 'OK',
+      idRegistro: reserva.id
+    });
+  }
+
+  return reservas.length;
 };
 
 module.exports = reservaService;
