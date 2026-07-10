@@ -92,7 +92,12 @@ authService.login = async (correoElectronico, clave) => {
     correo: usuarioEncontrado.correoElectronico,
     clienteId: usuarioEncontrado.cliente?.id ?? null,
     empleadoId: usuarioEncontrado.empleado?.id ?? null,
-    usuarioEncontrado
+    usuario: {
+      id: usuarioEncontrado.id,
+      correoElectronico: usuarioEncontrado.correoElectronico,
+      rol: rol,
+      ultimoAcceso: usuarioEncontrado.ultimoAcceso
+    }
   };
 };
 
