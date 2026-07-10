@@ -1,3 +1,4 @@
+const auditoriaService = require("../services/auditoria.service");
 const perfilService = require('../services/perfil.service');
 
 const perfilController = {};

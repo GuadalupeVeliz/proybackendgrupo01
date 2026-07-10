@@ -1,4 +1,5 @@
 const vacanteService = require('../services/vacante.service');
+const auditoriaService = require("../services/auditoria.service");
 
 const vacanteController = {};
 
