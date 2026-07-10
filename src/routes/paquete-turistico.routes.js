@@ -1,6 +1,7 @@
 const express = require('express');
 const paqueteTuristicoController = require('../controllers/paquete-turistico.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
+const cargarImagenesPaquete = require('../middlewares/paquete-imagen.middleware');
 
 const paqueteTuristicoRoutes = express.Router();
 
@@ -12,6 +13,7 @@ paqueteTuristicoRoutes.post(
   '/',
   authMiddleware.verifyUserToken,
   authMiddleware.authorizeByRole(['Gerente']),
+  cargarImagenesPaquete,
   paqueteTuristicoController.createPaqueteTuristico,
 );
 paqueteTuristicoRoutes.get(
@@ -22,6 +24,7 @@ paqueteTuristicoRoutes.put(
   '/:id',
   authMiddleware.verifyUserToken,
   authMiddleware.authorizeByRole(['Gerente']),
+  cargarImagenesPaquete,
   paqueteTuristicoController.updatePaqueteTuristico,
 );
 paqueteTuristicoRoutes.delete(
