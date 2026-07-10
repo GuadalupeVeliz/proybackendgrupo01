@@ -9,10 +9,7 @@ const usuarioService = {};
 
 usuarioService.addUsuario = async (data) => {
   const correoEncontrado = await Usuario.findOne({
-    where: {
-      correoElectronico: data.correoElectronico,
-      eliminado: false,
-    },
+    where: { correoElectronico: data.correoElectronico },
   });
 
   if (correoEncontrado) {
@@ -46,9 +43,30 @@ usuarioService.addUsuario = async (data) => {
   }
 
   return await sequelize.transaction(async (transaction) => {
+    let clienteExistente = null;
+    if (data.dni && !data.legajo) {
+      clienteExistente = await Cliente.findOne({
+        where: { dni: data.dni },
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+
+      if (clienteExistente?.eliminado) {
+        throw new Error('El cliente asociado al DNI se encuentra dado de baja.');
+      }
+
+      if (clienteExistente?.usuarioId) {
+        throw new Error('El cliente ya tiene una cuenta asociada.');
+      }
+    }
+
     const nuevoUsuario = await Usuario.create(data, { transaction });
 
     if (data.legajo) {
+      if (!data.sede) {
+        throw new Error('La sede es obligatoria para registrar un empleado.');
+      }
+
       nuevoUsuario.rol = data.esGerente ? 'Gerente' : 'Recepcionista';
       await empleadoService.addEmpleado(
         {
@@ -60,15 +78,19 @@ usuarioService.addUsuario = async (data) => {
         transaction,
       );
     } else if (data.dni) {
-      await clienteService.addCliente(
-        {
-          dni: data.dni,
-          nombreCompleto: data.nombreCompleto,
-          telefono: data.telefono,
-          usuarioId: nuevoUsuario.id,
-        },
-        transaction,
-      );
+      if (clienteExistente) {
+        await clienteExistente.update({ usuarioId: nuevoUsuario.id }, { transaction });
+      } else {
+        await clienteService.addCliente(
+          {
+            dni: data.dni,
+            nombreCompleto: data.nombreCompleto,
+            telefono: data.telefono,
+            usuarioId: nuevoUsuario.id,
+          },
+          transaction,
+        );
+      }
     } else {
       throw new Error('No se proporcionaron datos suficientes para crear un perfil de usuario.');
     }
