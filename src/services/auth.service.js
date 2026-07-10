@@ -32,7 +32,7 @@ authService.signUp = async (data) => {
     process.env.JWT_SECRET_KEY,
     { expiresIn: '1h' },
   );
-
+  usuarioCompleto.rol=rol;
   return {
     token: token,
     rol: rol,
@@ -85,7 +85,7 @@ authService.login = async (correoElectronico, clave) => {
     process.env.JWT_SECRET_KEY,
     { expiresIn: '1h' },
   );
-
+  usuarioEncontrado.rol = rol;
   return {
     token,
     rol,
