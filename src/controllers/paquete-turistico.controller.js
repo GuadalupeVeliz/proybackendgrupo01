@@ -1,11 +1,46 @@
 const paqueteTuristicoService = require('../services/paquete-turistico.service');
 const auditoriaService = require("../services/auditoria.service");
+const storageService = require('../services/supabase-storage.service');
 
 const paqueteTuristicoController = {};
 
+const parsearArreglo = (valor, campo) => {
+  if (Array.isArray(valor)) return valor;
+  if (valor == null || valor === '') return [];
+  try {
+    const resultado = JSON.parse(valor);
+    if (!Array.isArray(resultado)) throw new Error();
+    return resultado;
+  } catch {
+    throw new Error(`El campo ${campo} debe ser un arreglo JSON válido.`);
+  }
+};
+
+const normalizarBody = (body) => {
+  const resultado = { ...body };
+  if (body.precioBase != null) resultado.precioBase = Number(body.precioBase);
+  if (body.duracionEnDias != null) resultado.duracionEnDias = Number(body.duracionEnDias);
+  for (const campo of ['incluye', 'noIncluye', 'recomendaciones']) {
+    if (body[campo] != null) resultado[campo] = parsearArreglo(body[campo], campo);
+  }
+  delete resultado.imagenes;
+  return resultado;
+};
+
 paqueteTuristicoController.createPaqueteTuristico = async (req, res) => {
   try {
-    const paqueteTuristico = await paqueteTuristicoService.addPaqueteTuristico(req.body);
+    if (!req.files?.length) throw new Error('Debe seleccionar al menos una imagen.');
+    const imagenesSubidas = await storageService.subirImagenes(req.files);
+    let paqueteTuristico;
+    try {
+      paqueteTuristico = await paqueteTuristicoService.addPaqueteTuristico({
+        ...normalizarBody(req.body),
+        imagenes: imagenesSubidas.map(({ url }) => url),
+      });
+    } catch (error) {
+      await storageService.eliminarImagenes(imagenesSubidas.map(({ ruta }) => ruta)).catch(() => undefined);
+      throw error;
+    }
     await auditoriaService.registrarCreate(req,{
           accion: 'Crear', 
           modelo: 'Paquete Turistico',
@@ -67,11 +102,21 @@ paqueteTuristicoController.getPaqueteTuristicoById = async (req, res) => {
 };
 
 paqueteTuristicoController.updatePaqueteTuristico = async (req, res) => {
+  let imagenesNuevas = [];
   try {
+    const paqueteActual = await paqueteTuristicoService.findPaqueteTuristicoById(req.params.id);
+    const updates = normalizarBody(req.body);
+    if (req.files?.length) {
+      imagenesNuevas = await storageService.subirImagenes(req.files);
+      updates.imagenes = imagenesNuevas.map(({ url }) => url);
+    }
     const paqueteTuristico = await paqueteTuristicoService.editPaqueteTuristico(
       req.params.id,
-      req.body
+      updates
     );
+    if (imagenesNuevas.length) {
+      await storageService.eliminarImagenes(paqueteActual.imagenes).catch(() => undefined);
+    }
     await auditoriaService.registrarCreate(req,{
           accion: 'Modificar', 
           modelo: 'Paquete Turistico',
@@ -80,6 +125,9 @@ paqueteTuristicoController.updatePaqueteTuristico = async (req, res) => {
         });
     return res.status(200).json({ success: true, data: paqueteTuristico });
   } catch (error) {
+    if (imagenesNuevas.length) {
+      await storageService.eliminarImagenes(imagenesNuevas.map(({ ruta }) => ruta)).catch(() => undefined);
+    }
     await auditoriaService.registrarCreate(req,{
           accion: 'Modificar', 
           modelo: 'Paquete Turistico',
