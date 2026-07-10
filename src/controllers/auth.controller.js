@@ -39,7 +39,7 @@ authController.login = async (req, res) => {
           accion: 'Login', 
           modelo: 'Usuario',
           resultado: 'OK',
-        },data.usuarioEncontrado);
+        },data.usuario);
     return res.status(200).json({
       success: true,
       data: data
