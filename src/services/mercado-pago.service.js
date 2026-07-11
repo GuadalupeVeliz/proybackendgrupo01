@@ -3,8 +3,8 @@ const { preference, payment } = require('../../config/mercado-pago.config');
 const mercadoPagoService = {};
 
 mercadoPagoService.createPreference = async ({ paquete, cantidad, reservaId }) => {
-  const frontendUrl = process.env.FRONTEND_URL;
-  const backendUrl = process.env.BACKEND_URL;
+  const frontendUrl = 'https://proyfrontendgrupo01-6r0q.onrender.com' || process.env.FRONTEND_URL;
+  const backendUrl = 'https://proybackendgrupo01-ecl4.onrender.com/api/v1' || process.env.BACKEND_URL;
 
   const pref = await preference.create({
     body: {
