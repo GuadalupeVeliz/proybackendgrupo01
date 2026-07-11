@@ -43,6 +43,19 @@ Reserva.belongsTo(Cliente, {
   as: 'cliente',
 });
 
+Empleado.hasMany(Reserva, {
+  foreignKey: 'empleadoId',
+  as: 'reservasGestionadas',
+  onUpdate: 'CASCADE',
+  onDelete: 'SET NULL',
+});
+Reserva.belongsTo(Empleado, {
+  foreignKey: 'empleadoId',
+  as: 'gestionadaPor',
+  onUpdate: 'CASCADE',
+  onDelete: 'SET NULL',
+});
+
 Vacante.hasMany(Reserva, {
   foreignKey: 'vacanteId',
   as: 'reservas',

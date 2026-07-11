@@ -1,4 +1,4 @@
-const { Vacante, Reserva, Cliente, PaqueteTuristico, Comprobante } = require('../models');
+const { Vacante, Reserva, Cliente, Empleado, PaqueteTuristico, Comprobante } = require('../models');
 const vacanteService = require('./vacante.service');
 const comprobanteService = require('./comprobante.service');
 const { Op } = require('sequelize');
@@ -6,7 +6,33 @@ const pagoService = require('./pago.service');
 
 const reservaService = {};
 
-reservaService.addReserva = async (data) => {
+const empleadoInclude = {
+  model: Empleado,
+  as: 'gestionadaPor',
+  attributes: ['id', 'legajo', 'sede', 'esGerente'],
+};
+
+const assertClienteOwnsReserva = (reserva, usuario) => {
+  if (usuario.rol === 'Cliente' && reserva.clienteId !== usuario.cliente?.id) {
+    throw new Error('No tiene permisos para acceder a una reserva de otro cliente.');
+  }
+};
+
+reservaService.addReserva = async (data, usuario) => {
+  const isCliente = usuario.rol === 'Cliente';
+  const clienteId = isCliente ? usuario.cliente?.id : data.clienteId;
+  const empleadoId = isCliente ? null : usuario.empleado?.id;
+
+  if (!clienteId) {
+    throw new Error(isCliente
+      ? 'El usuario autenticado no tiene un cliente asociado.'
+      : 'Debe indicar el cliente de la reserva.');
+  }
+
+  if (!isCliente && (!empleadoId || usuario.empleado.eliminado)) {
+    throw new Error('El usuario autenticado no tiene un empleado activo asociado.');
+  }
+
   const existingVacante = await Vacante.findOne({
     where: { id: data.vacanteId, estado: 'disponible', eliminado: false },
     include: { model: PaqueteTuristico, as: 'paqueteTuristico' },
@@ -16,7 +42,7 @@ reservaService.addReserva = async (data) => {
     throw new Error('Vacante no encontrada o dada de baja.');
   }
 
-  const existingCliente = await Cliente.findByPk(data.clienteId);
+  const existingCliente = await Cliente.findOne({ where: { id: clienteId, eliminado: false } });
 
   if (!existingCliente) {
     throw new Error('Cliente no encontrado o dado de baja.');
@@ -26,8 +52,8 @@ reservaService.addReserva = async (data) => {
     throw new Error('La cantidad de personas debe ser mayor a 0.');
   }
 
-  const fechaReservacion = new Date(data.fechaReservacion);
-  const fechaSalida = new Date(existingVacante.fechaSalida);
+  const fechaReservacion = new Date(data.fechaDeReservacion);
+  const fechaSalida = new Date(existingVacante.fechaDeSalida);
 
   if (fechaReservacion >= fechaSalida) {
     throw new Error(
@@ -42,7 +68,13 @@ reservaService.addReserva = async (data) => {
     data.cantidadDePersonas,
   );
 
-  return await Reserva.create({ ...data, estado: 'pendiente' });
+  const { empleadoId: ignoredEmpleadoId, clienteId: ignoredClienteId, ...reservaData } = data;
+  return await Reserva.create({
+    ...reservaData,
+    clienteId,
+    empleadoId,
+    estado: 'pendiente',
+  });
 };
 
 reservaService.findReservas = async (filters = { eliminado: false }) => {
@@ -50,11 +82,21 @@ reservaService.findReservas = async (filters = { eliminado: false }) => {
     include: [
       { model: Cliente, as: 'cliente', attributes: { exclude: ['createdAt', 'updatedAt'] } },
       { model: Vacante, as: 'vacante', attributes: { exclude: ['createdAt', 'updatedAt'] } },
+      empleadoInclude,
     ],
     where: filters,
     order: [['createdAt', 'ASC']],
     attributes: { exclude: ['createdAt', 'updatedAt'] },
   });
+};
+
+reservaService.findReservasForUser = async (usuario) => {
+  const filters = { eliminado: false };
+  if (usuario.rol === 'Cliente') {
+    if (!usuario.cliente?.id) return [];
+    filters.clienteId = usuario.cliente.id;
+  }
+  return reservaService.findReservas(filters);
 };
 
 reservaService.findReservaById = async (id) => {
@@ -63,6 +105,7 @@ reservaService.findReservaById = async (id) => {
     include: [
       { model: Cliente, as: 'cliente', attributes: { exclude: ['createdAt', 'updatedAt'] } },
       { model: Vacante, as: 'vacante', attributes: { exclude: ['createdAt', 'updatedAt'] } },
+      empleadoInclude,
     ],
     attributes: { exclude: ['createdAt', 'updatedAt'] },
   });
@@ -72,6 +115,12 @@ reservaService.findReservaById = async (id) => {
   }
 
   return existingReserva;
+};
+
+reservaService.findReservaByIdForUser = async (id, usuario) => {
+  const reserva = await reservaService.findReservaById(id);
+  assertClienteOwnsReserva(reserva, usuario);
+  return reserva;
 };
 
 reservaService.editReservas = async (id, data) => {
@@ -137,12 +186,14 @@ reservaService.findReservasByClienteId = async (id) => {
     include: [
       { model: Cliente, as: 'cliente', attributes: { exclude: ['createdAt', 'updatedAt'] } },
       { model: Vacante, as: 'vacante', attributes: { exclude: ['createdAt', 'updatedAt'] } },
+      empleadoInclude,
     ],
     attributes: { exclude: ['createdAt', 'updatedAt'] },
   });
 };
 
 reservaService.checkoutReserva = async (id) => {
+// reservaService.checkoutReserva = async (id, data, usuario) => {
   const reserva = await Reserva.findOne({
     where: { id, eliminado: false },
     include: {
@@ -160,12 +211,13 @@ reservaService.checkoutReserva = async (id) => {
   return { initPoint };
 };
 
-reservaService.cancelReserva = async (id) => {
+reservaService.cancelReserva = async (id, usuario) => {
   const reserva = await Reserva.findByPk(id);
 
   if (!reserva) {
     throw new Error('Reserva no encontrada o dada de baja.');
   }
+  assertClienteOwnsReserva(reserva, usuario);
   if (reserva.estado === 'cancelada') {
     throw new Error('La reserva ya se encuentra cancelada.');
   }

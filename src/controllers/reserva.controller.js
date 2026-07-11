@@ -5,7 +5,7 @@ const reservaController = {};
 
 reservaController.createReserva = async (req, res) => {
   try {
-    const reserva = await reservaService.addReserva(req.body);
+    const reserva = await reservaService.addReserva(req.body, req.usuarioLogged);
     await auditoriaService.registrarCreate(req,{
       accion: 'Crear', 
       modelo: 'Reserva',
@@ -26,7 +26,7 @@ reservaController.createReserva = async (req, res) => {
 
 reservaController.getReservas = async (req, res) => {
   try {
-    const reservas = await reservaService.findReservas();
+    const reservas = await reservaService.findReservasForUser(req.usuarioLogged);
     await auditoriaService.registrarCreate(req,{
       accion: 'Consulta', 
       modelo: 'Reserva',
@@ -46,7 +46,7 @@ reservaController.getReservas = async (req, res) => {
 
 reservaController.getReservaById = async (req, res) => {
   try {
-    const reserva = await reservaService.findReservaById(req.params.id);
+    const reserva = await reservaService.findReservaByIdForUser(req.params.id, req.usuarioLogged);
     await auditoriaService.registrarCreate(req,{
       accion: 'Consulta', 
       modelo: 'Reserva',
@@ -115,7 +115,10 @@ reservaController.deleteReserva = async (req, res) => {
 
 reservaController.getReservasByClienteId = async (req, res) => {
   try {
-    const reservas = await reservaService.findReservasByClienteId(req.params.clienteId);
+    const clienteId = req.usuarioLogged.rol === 'Cliente'
+      ? req.usuarioLogged.cliente?.id
+      : req.params.clienteId;
+    const reservas = await reservaService.findReservasByClienteId(clienteId);
     await auditoriaService.registrarCreate(req,{
       accion: 'Consulta', 
       modelo: 'Reserva',
@@ -164,7 +167,7 @@ reservaController.checkoutReserva = async (req, res) => {
 
 reservaController.cancelReserva = async (req, res) => {
   try {
-    const reserva = await reservaService.cancelReserva(req.params.id);
+    const reserva = await reservaService.cancelReserva(req.params.id, req.usuarioLogged);
     await auditoriaService.registrarCreate(req,{
       accion: 'Cancelar', 
       modelo: 'Reserva',
