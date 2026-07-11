@@ -10,7 +10,7 @@ const doc = {
       "- Véliz, Guadalupe Virginia",
     version: "1.0.0",
   },
-  host: "https://proybackendgrupo01-ecl4.onrender.com",
+  host: "proybackendgrupo01-ecl4.onrender.com",
   basePath: "/",
   schemes: ["http", "https"],
   tags: [
