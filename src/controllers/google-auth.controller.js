@@ -6,6 +6,11 @@ googleAuthController.signup = async (req, res) => {
   try {
     const { credential } = req.body;
     const data = await googleAuthService.signup(credential);
+    await auditoriaService.registrarCreate(req,{
+          accion: 'SignUp', 
+          modelo: 'Usuario',
+          resultado: 'OK',
+        })
 
     return res.status(200).json({
       success: true,
@@ -13,6 +18,12 @@ googleAuthController.signup = async (req, res) => {
     });
   } catch (error) {
     console.error('Error en google signup:', error.message);
+    await auditoriaService.registrarCreate(req,{
+          accion: 'SignUp', 
+          modelo: 'Usuario',
+          resultado: 'Error',
+          detalleError:error.message
+        })
     return res.status(401).json({
       success: false,
       error: 'Token de Google inválido',
@@ -24,7 +35,11 @@ googleAuthController.signin = async (req, res) => {
   try {
     const { credential } = req.body;
     const data = await googleAuthService.signin(credential);
-
+    await auditoriaService.registrarCreate(req,{
+          accion: 'Login', 
+          modelo: 'Usuario',
+          resultado: 'OK',
+        })
     return res.status(200).json({
       success: true,
       data: data,

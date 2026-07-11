@@ -7,7 +7,7 @@ dashboardController.getResumen = async (req, res) => {
   try {
     const resumen = await dashboardService.getResumen();
     await auditoriaService.registrarCreate(req, {
-      accion: 'Consulta',
+      accion: 'Consultar',
       modelo: 'Dashboard',
       resultado: 'OK',
     });

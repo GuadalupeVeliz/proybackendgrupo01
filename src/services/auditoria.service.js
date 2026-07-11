@@ -90,6 +90,45 @@ auditoriaService.buscarAuditorias = async (filtros) => {
     });
 };
 
+auditoriaService.getFiltros = async () => {
+    const filtros = {
+        accion: [
+            'Login',
+            'Consultar',
+            'Crear',
+            'Modificar',
+            'Eliminar',
+            'Exportar',
+            'Pagar',
+            'Cancelar',
+            'Confirmar',
+            'SignUp',
+            'Descargar'
+        ],
+        resultado: [
+            'OK',
+            'Error'
+        ],
+        modelo: [
+            'Usuario',
+            'Paquete Turistico',
+            'Vacante',
+            'Reserva',
+            'Perfil de Usuario',
+            'Empleado',
+            'Cliente',
+            'Dashboard',
+            'Comprobante',
+            'Pago'
+        ],
+        rol: [
+            'Cliente',
+            'Recepcionista',
+            'Gerente'
+        ],
+    }
+    return filtros
+}
 
 
 module.exports = auditoriaService

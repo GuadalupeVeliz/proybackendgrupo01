@@ -28,14 +28,14 @@ vacanteController.getVacantes = async (req, res) => {
   try {
     const vacantes = await vacanteService.findVacantes();
     await auditoriaService.registrarCreate(req,{
-          accion: 'Consulta', 
+          accion: 'Consultar', 
           modelo: 'Vacante',
           resultado: 'OK',
         });
     return res.status(200).json({ success: true, data: vacantes });
   } catch (error) {
     await auditoriaService.registrarCreate(req,{
-          accion: 'Consulta', 
+          accion: 'Consultar', 
           modelo: 'Vacante',
           resultado: 'Error',
           detalleError:error.message
@@ -48,7 +48,7 @@ vacanteController.getVacante = async (req, res) => {
   try {
     const vacante = await vacanteService.findVacanteById(req.params.id);
     await auditoriaService.registrarCreate(req,{
-          accion: 'Consulta', 
+          accion: 'Consultar', 
           modelo: 'Vacante',
           resultado: 'OK',
           entidadId: req.params.id,
@@ -56,7 +56,7 @@ vacanteController.getVacante = async (req, res) => {
     return res.status(200).json({ success: true, data: vacante });
   } catch (error) {
     await auditoriaService.registrarCreate(req,{
-          accion: 'Consulta', 
+          accion: 'Consultar', 
           modelo: 'Vacante',
           resultado: 'Error',
           entidadId: req.params.id,

@@ -63,6 +63,12 @@ googleAuthService.signin = async (credential) => {
     rol,
     clienteId: usuarioEncontrado.cliente?.id ?? null,
     empleadoId: usuarioEncontrado.empleado?.id ?? null,
+    usuario: {
+      id: usuarioEncontrado.id,
+      correoElectronico: usuarioEncontrado.correoElectronico,
+      rol: rol,
+      ultimoAcceso: usuarioEncontrado.ultimoAcceso
+    }
   };
 };
 

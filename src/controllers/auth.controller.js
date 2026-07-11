@@ -19,7 +19,7 @@ authController.signUp = async (req, res) => {
     });
   } catch (error) {
     await auditoriaService.registrarCreate(req,{
-          accion: 'Modificar', 
+          accion: 'SignUp', 
           modelo: 'Usuario',
           resultado: 'Error',
           detalleError:error.message
