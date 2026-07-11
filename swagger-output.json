@@ -2,14 +2,2887 @@
   "swagger": "2.0",
   "info": {
     "title": "API Turismo del Norte'",
-    "description": "Documentación de la API para el sistema de gestión de reservas turísticas Turismo del Norte.",
+    "description": "Documentación de la API para el sistema de gestión de reservas turísticas Turismo del Norte..\nIntegrantes del grupo:\n- Barboza, Nicolás Gonzalo\n- Lamas, Juan Eduardo\n- Véliz, Guadalupe Virginia",
     "version": "1.0.0"
   },
   "host": "localhost:3000",
   "basePath": "/",
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Login, registro y autenticación con Google"
+    },
+    {
+      "name": "Usuarios",
+      "description": "Gestión de usuarios, clientes y empleados"
+    },
+    {
+      "name": "Paquetes Turísticos",
+      "description": "Gestión de paquetes turísticos y sus vacantes"
+    },
+    {
+      "name": "Vacantes",
+      "description": "Gestión de cupos disponibles por salida"
+    },
+    {
+      "name": "Reservas",
+      "description": "Creación y gestión de reservas"
+    },
+    {
+      "name": "Pagos",
+      "description": "Registro y gestión de pagos de reservas"
+    },
+    {
+      "name": "Comprobantes",
+      "description": "Emisión de comprobantes de reserva/cancelación"
+    },
+    {
+      "name": "Dashboard",
+      "description": "Métricas, gráficos y exportación de reportes"
+    }
+  ],
   "schemes": [
     "http",
     "https"
   ],
-  "paths": {}
+  "paths": {
+    "/api/v1/auth/signup": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Registrar nuevo usuario",
+        "description": "Crea un nuevo usuario en el sistema y devuelve un token JWT",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Datos del usuario a registrar",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/createUsuario"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Usuario registrado correctamente"
+          },
+          "400": {
+            "description": "Error en los datos de registro"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Iniciar sesión",
+        "description": "Autentica un usuario con correo y contraseña, devuelve token JWT y rol",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Credenciales del usuario",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "correoElectronico": {
+                  "type": "string",
+                  "example": "usuario@ejemplo.com"
+                },
+                "contrasena": {
+                  "type": "string",
+                  "example": "12345678"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login exitoso"
+          },
+          "401": {
+            "description": "Credenciales incorrectas"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Cerrar sesión",
+        "description": "Finaliza la sesión del usuario actual",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sesión cerrada correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al cerrar sesión"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/google/signup": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Registro con Google",
+        "description": "Verifica el ID token de Google y devuelve un token temporal \r  junto con los datos del usuario (email, nombre, foto) para completar el registro. \r  No crea el usuario en la base todavía, eso ocurre en un paso posterior.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/googleAuthCredential"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token temporal generado correctamente",
+            "schema": {
+              "$ref": "#/definitions/googleSignupResponse"
+            }
+          },
+          "400": {
+            "description": "Credencial de Google inválida o expirada"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/google/signin": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Inicio de sesión con Google",
+        "description": "Verifica el ID token de Google, busca el usuario asociado \r  (activo y no eliminado) y devuelve un JWT junto con su rol (Cliente o Empleado) \r  y el ID correspondiente según ese rol.",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/googleAuthCredential"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "schema": {
+              "$ref": "#/definitions/googleSigninResponse"
+            }
+          },
+          "400": {
+            "description": "Credenciales de Google incompletas"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Usuario no encontrado o dado de baja"
+          }
+        }
+      }
+    },
+    "/api/v1/usuarios/": {
+      "get": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Obtener listado de usuarios",
+        "description": "Devuelve todos los usuarios activos. Requiere rol Gerente",
+        "responses": {
+          "200": {
+            "description": "Listado obtenido correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener los usuarios"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Crear un nuevo usuario",
+        "description": "Crea un usuario a partir de los datos enviados. Requiere rol Gerente",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Datos del usuario a crear",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/createUsuario"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Usuario creado correctamente"
+          },
+          "400": {
+            "description": "Error de validación. Puede ocurrir si el correo ya está registrado"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/usuarios/{id}": {
+      "get": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Obtener un usuario por ID",
+        "description": "Devuelve los datos de un usuario activo específico. Requiere rol Gerente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del usuario"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario encontrado"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Actualizar un usuario",
+        "description": "Actualiza los datos de un usuario existente. Requiere rol Gerente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del usuario"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Datos a actualizar",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/updateUsuario"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario actualizado correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Usuario no encontrado o error de validación"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Eliminar un usuario",
+        "description": "Elimina lógicamente un usuario (soft delete, activo=false). Requiere rol Gerente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del usuario"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Usuario eliminado correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        }
+      }
+    },
+    "/api/v1/empleados/": {
+      "get": {
+        "tags": [
+          "Empleados"
+        ],
+        "summary": "Obtener lista de empleados",
+        "description": "Devuelve la lista los empleados activos",
+        "responses": {
+          "200": {
+            "description": "Lista de empleados obtenida correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener los empleados"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Empleados"
+        ],
+        "summary": "Crear un nuevo empleado",
+        "description": "Registra un nuevo empleado, validando que el legajo no esté duplicado",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Datos del empleado a crear",
+            "schema": {
+              "$ref": "#/definitions/createEmpleado"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Empleado creado correctamente"
+          },
+          "400": {
+            "description": "Error al crear el empleado (ej. legajo duplicado)"
+          },
+          "401": {
+            "description": "Acceso denegado. Token no proporcionado"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/empleados/{id}": {
+      "get": {
+        "tags": [
+          "Empleados"
+        ],
+        "summary": "Obtener un empleado por ID",
+        "description": "Devuelve los datos de un empleado activo según su ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID del empleado"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Empleado encontrado"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Empleado no encontrado o dado de baja"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Empleados"
+        ],
+        "summary": "Actualizar un empleado",
+        "description": "Modifica los datos de un empleado activo, validando legajo duplicado si se cambia",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID del empleado"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Datos a actualizar",
+            "schema": {
+              "$ref": "#/definitions/updateEmpleado"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Empleado actualizado correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Empleado no encontrado o legajo duplicado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Empleados"
+        ],
+        "summary": "Eliminar (dar de baja) un empleado",
+        "description": "Marca al empleado como inactivo (soft delete)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID del empleado"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Empleado eliminado correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Empleado no encontrado o ya eliminado"
+          }
+        }
+      }
+    },
+    "/api/v1/clientes/": {
+      "get": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Obtener lista de clientes",
+        "description": "Devuelve el listado de todos los clientes activos",
+        "responses": {
+          "200": {
+            "description": "Lista de clientes obtenida correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener los clientes"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Crear un nuevo cliente",
+        "description": "Registra un nuevo cliente. Falla si el DNI ya está registrado",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/createCliente"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Cliente creado correctamente"
+          },
+          "400": {
+            "description": "El DNI ya se encuentra registrado"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/clientes/{id}": {
+      "get": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Actualizar un cliente",
+        "description": "Actualiza los datos de un cliente activo. Valida DNI duplicado si se envía",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del cliente"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/updateCliente"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cliente actualizado correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Cliente no encontrado, dado de baja, o DNI duplicado"
+          }
+        }
+      },
+      "put": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Clientes"
+        ],
+        "summary": "Eliminar (baja lógica) un cliente",
+        "description": "Marca un cliente como inactivo (activo: false)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del cliente"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Cliente eliminado correctamente (sin contenido)"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Cliente no encontrado o ya eliminado"
+          }
+        }
+      }
+    },
+    "/api/v1/perfiles/": {
+      "get": {
+        "tags": [
+          "Perfil"
+        ],
+        "summary": "Obtener perfil del usuario logueado",
+        "description": "Devuelve los datos del usuario autenticado, incluyendo detalles de cliente o empleado según corresponda",
+        "responses": {
+          "200": {
+            "description": "Perfil obtenido correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener el perfil"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Perfil"
+        ],
+        "summary": "Actualizar perfil del usuario logueado",
+        "description": "Actualiza correo, contraseña y datos de cliente o empleado según el usuario autenticado",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Datos a actualizar del perfil",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "correoElectronico": {
+                  "type": "string",
+                  "example": "nuevo@ejemplo.com"
+                },
+                "contrasena": {
+                  "type": "string",
+                  "example": "nuevaContrasena123"
+                },
+                "telefono": {
+                  "type": "string",
+                  "example": "1122334455"
+                },
+                "nombreCompleto": {
+                  "type": "string",
+                  "example": "Juan Perez"
+                },
+                "sede": {
+                  "type": "string",
+                  "example": "Centro"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil actualizado correctamente"
+          },
+          "400": {
+            "description": "Error al actualizar el perfil"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/paquetes-turisticos/": {
+      "get": {
+        "tags": [
+          "Paquetes Turísticos"
+        ],
+        "summary": "Obtener listado de paquetes turísticos",
+        "description": "Devuelve todos los paquetes turísticos activos, incluyendo sus vacantes asociadas",
+        "parameters": [
+          {
+            "name": "lang",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado obtenido correctamente"
+          },
+          "500": {
+            "description": "Error al obtener los paquetes turísticos"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Paquetes Turísticos"
+        ],
+        "summary": "Crear un nuevo paquete turístico",
+        "description": "Registra un paquete turístico nuevo, validando que el nombre no esté duplicado",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Datos del paquete turístico a crear",
+            "schema": {
+              "$ref": "#/definitions/createPaqueteTuristico"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Paquete creado correctamente"
+          },
+          "400": {
+            "description": "El nombre ya está registrado"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/paquetes-turisticos/{id}": {
+      "get": {
+        "tags": [
+          "Paquetes Turísticos"
+        ],
+        "summary": "Obtener un paquete turístico por ID",
+        "description": "Devuelve un paquete turístico activo según su ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID del paquete turístico"
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paquete encontrado"
+          },
+          "404": {
+            "description": "Paquete no encontrado o dado de baja"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Paquetes Turísticos"
+        ],
+        "summary": "Actualizar un paquete turístico",
+        "description": "Modifica los datos de un paquete turístico existente, validando duración con reservas activas y nombre duplicado",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID del paquete turístico"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Datos a actualizar",
+            "schema": {
+              "$ref": "#/definitions/updatePaqueteTuristico"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paquete actualizado correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Paquete no encontrado, duración no modificable o nombre duplicado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Paquetes Turísticos"
+        ],
+        "summary": "Eliminar (dar de baja) un paquete turístico",
+        "description": "Realiza un borrado lógico, marcando el paquete como inactivo",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "ID del paquete turístico"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Paquete eliminado correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Paquete no encontrado o ya eliminado"
+          }
+        }
+      }
+    },
+    "/api/v1/vacantes/": {
+      "get": {
+        "tags": [
+          "Vacantes"
+        ],
+        "summary": "Obtener listado de vacantes",
+        "description": "Devuelve todas las vacantes activas junto con su paquete turístico asociado, ordenadas por fecha de salida",
+        "responses": {
+          "200": {
+            "description": "Listado de vacantes obtenido correctamente"
+          },
+          "500": {
+            "description": "Error al obtener las vacantes"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Vacantes"
+        ],
+        "summary": "Crear una nueva vacante",
+        "description": "Crea una vacante para un paquete turístico, fecha y cupo específicos. No permite duplicados activos con la misma combinación",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/createVacante"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Vacante creada correctamente"
+          },
+          "400": {
+            "description": "Ya existe una vacante para ese paquete, fecha y sucursal"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/vacantes/{id}": {
+      "get": {
+        "tags": [
+          "Vacantes"
+        ],
+        "summary": "Obtener una vacante por ID",
+        "description": "Devuelve los datos de una vacante activa junto con su paquete turístico asociado",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID de la vacante"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vacante encontrada"
+          },
+          "404": {
+            "description": "Vacante no encontrada o dada de baja"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Vacantes"
+        ],
+        "summary": "Actualizar una vacante",
+        "description": "Actualiza los datos de una vacante activa. Si se modifica el cupo total, recalcula el cupo disponible en base a las reservas ya asociadas",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID de la vacante"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/updateVacante"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vacante actualizada correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Vacante no encontrada, dada de baja, cupo inválido o duplicada"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Vacantes"
+        ],
+        "summary": "Dar de baja una vacante",
+        "description": "Marca una vacante como inactiva (borrado lógico). No permite la baja si ya posee reservas asociadas",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID de la vacante"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Vacante dada de baja correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Vacante no encontrada, ya eliminada, o con reservas asociadas"
+          }
+        }
+      }
+    },
+    "/api/v1/reservas/": {
+      "get": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Obtener todas las reservas",
+        "description": "Devuelve el listado de reservas activas con datos de cliente y vacante incluidos",
+        "responses": {
+          "200": {
+            "description": "Listado obtenido correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener reservas"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Crear una nueva reserva",
+        "description": "Crea una reserva validando disponibilidad de cupos en la vacante indicada",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/createReserva"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Reserva creada con éxito"
+          },
+          "400": {
+            "description": "Datos inválidos, cliente/vacante inexistente o sin cupos disponibles"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/reservas/{id}": {
+      "get": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Obtener una reserva por ID",
+        "description": "Devuelve los datos de una reserva activa según su ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID de la reserva"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reserva encontrada"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Reserva no encontrada"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Actualizar una reserva",
+        "description": "Modifica los datos de una reserva existente, revalidando cupos si cambia la vacante o cantidad de personas",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID de la reserva"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reserva actualizada con éxito"
+          },
+          "400": {
+            "description": "Datos inválidos o sin cupos disponibles"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Reserva no existe o no encontrada"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Eliminar una reserva",
+        "description": "Realiza un borrado lógico de la reserva (activo=false) y restaura el cupo si no estaba cancelada",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID de la reserva"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Reserva eliminada correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Reserva no encontrada o ya fue eliminada previamente"
+          }
+        }
+      }
+    },
+    "/api/v1/reservas/cliente/{clienteId}": {
+      "get": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Obtener reservas por cliente",
+        "description": "Devuelve todas las reservas activas asociadas a un cliente específico",
+        "parameters": [
+          {
+            "name": "clienteId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del cliente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservas encontradas"
+          },
+          "400": {
+            "description": "Error al procesar la solicitud"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "No se encontraron reservas para este cliente"
+          }
+        }
+      }
+    },
+    "/api/v1/reservas/checkout/{id}": {
+      "put": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Confirmar (checkout) una reserva",
+        "description": "Confirma una reserva validando el monto pagado y genera el comprobante correspondiente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID de la reserva"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "montoPagado": {
+                  "type": "number",
+                  "example": 15000
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reserva confirmada"
+          },
+          "400": {
+            "description": "Reserva ya confirmada, cancelada o monto insuficiente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Reserva no encontrada"
+          }
+        }
+      }
+    },
+    "/api/v1/reservas/cancel/{id}": {
+      "put": {
+        "tags": [
+          "Reservas"
+        ],
+        "summary": "Cancelar una reserva",
+        "description": "Cancela una reserva activa y restaura el cupo correspondiente en la vacante",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID de la reserva"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reserva cancelada"
+          },
+          "400": {
+            "description": "La reserva ya se encuentra cancelada"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Reserva no encontrada"
+          }
+        }
+      }
+    },
+    "/api/v1/pagos/": {
+      "get": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Listar pagos",
+        "description": "Devuelve todos los pagos activos junto con la reserva asociada",
+        "responses": {
+          "200": {
+            "description": "Lista de pagos obtenida correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener los pagos"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Registrar pago manual",
+        "description": "Crea un pago manual asociado a una reserva. Si el estado es \"pagado\", confirma la reserva y genera comprobante",
+        "responses": {
+          "201": {
+            "description": "Pago manual creado exitosamente"
+          },
+          "400": {
+            "description": "Datos faltantes, reserva inexistente o cancelada"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/pagos/{id}": {
+      "get": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Obtener un pago por ID",
+        "description": "Devuelve un pago específico junto con su reserva asociada",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del pago"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pago encontrado"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Pago no encontrado"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Actualizar un pago",
+        "description": "Actualiza los datos de un pago existente.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del pago"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/updatePago"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pago actualizado exitosamente"
+          },
+          "400": {
+            "description": "Pago no encontrado o datos inválidos"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Pagos"
+        ],
+        "summary": "Eliminar un pago",
+        "description": "Elimina lógicamente un pago (activo = false). Si la reserva estaba confirmada, la revierte a pendiente y anula el comprobante",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del pago"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pago eliminado exitosamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Pago no encontrado o ya fue eliminado"
+          }
+        }
+      }
+    },
+    "/api/v1/comprobantes/me": {
+      "get": {
+        "tags": [
+          "Comprobantes"
+        ],
+        "summary": "Obtener mis comprobantes",
+        "description": "Devuelve el historial de comprobantes del cliente autenticado",
+        "responses": {
+          "200": {
+            "description": "Comprobantes obtenidos correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener tu historial"
+          }
+        }
+      }
+    },
+    "/api/v1/comprobantes/cliente/{clienteId}": {
+      "get": {
+        "tags": [
+          "Comprobantes"
+        ],
+        "summary": "Obtener comprobantes por cliente",
+        "description": "Devuelve todos los comprobantes activos asociados a un cliente",
+        "parameters": [
+          {
+            "name": "clienteId",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del cliente"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comprobantes obtenidos correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener los comprobantes"
+          }
+        }
+      }
+    },
+    "/api/v1/comprobantes/{id}/download-pdf": {
+      "get": {
+        "tags": [
+          "Comprobantes"
+        ],
+        "summary": "Descargar comprobante en PDF",
+        "description": "Genera y descarga el archivo PDF del comprobante solicitado",
+        "produces": [
+          "application/pdf"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del comprobante"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Archivo PDF generado correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al generar el documento PDF"
+          }
+        }
+      }
+    },
+    "/api/v1/comprobantes/": {
+      "get": {
+        "tags": [
+          "Comprobantes"
+        ],
+        "summary": "Obtener todos los comprobantes",
+        "description": "Devuelve la lista de comprobantes activos ordenados por fecha de creación descendente",
+        "responses": {
+          "200": {
+            "description": "Comprobantes obtenidos correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener los comprobantes"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Comprobantes"
+        ],
+        "summary": "Crear comprobante",
+        "description": "Crea un nuevo comprobante manualmente",
+        "responses": {
+          "201": {
+            "description": "Comprobante creado correctamente"
+          },
+          "400": {
+            "description": "Error al crear el comprobante"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/comprobantes/{id}": {
+      "get": {
+        "tags": [
+          "Comprobantes"
+        ],
+        "summary": "Obtener comprobante por ID",
+        "description": "Devuelve un comprobante activo por su ID, incluyendo su reserva asociada.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del comprobante"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comprobante encontrado"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Comprobante no encontrado"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Comprobantes"
+        ],
+        "summary": "Actualizar comprobante",
+        "description": "Actualiza los datos de un comprobante existente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del comprobante"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comprobante actualizado exitosamente"
+          },
+          "400": {
+            "description": "Error al actualizar el comprobante"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Comprobantes"
+        ],
+        "summary": "Eliminar comprobante",
+        "description": "Elimina lógicamente un comprobante (baja de activo a inactivo)",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID del comprobante"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comprobante eliminado exitosamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Comprobante no encontrado"
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/resumen": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Resumen general del dashboard",
+        "description": "Devuelve totales de reservas, ingresos y paquete turistico mas vendido",
+        "consumes": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Resumen obtenido correctamente"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener el resumen del dashboard"
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/reservas-por-mes": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Reservas agrupadas por mes",
+        "description": "Devuelve la cantidad de reservas agrupadas por mes para un año dado",
+        "parameters": [
+          {
+            "name": "anio",
+            "in": "query",
+            "description": "Año a consultar (por defecto el año actual)",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservas por mes obtenidas correctamente",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "mes": {
+                  "type": "string",
+                  "example": "01"
+                },
+                "cantidad": {
+                  "type": "number",
+                  "example": 5
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener reservas por mes",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "mensaje": {
+                  "type": "string",
+                  "example": "Error al obtener reservas por mes."
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/reservas-por-estado": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Reservas agrupadas por estado",
+        "description": "Devuelve la cantidad de reservas agrupadas por estado",
+        "responses": {
+          "200": {
+            "description": "Reservas por estado obtenidas correctamente",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "estado": {
+                    "type": "string",
+                    "example": "pendiente"
+                  },
+                  "cantidad": {
+                    "type": "number",
+                    "example": 10
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener reservas por estado",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "mensaje": {
+                  "type": "string",
+                  "example": "Error al obtener reservas por estado"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/ingresos-evolucion": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Evolución de ingresos",
+        "description": "Devuelve la evolución mensual de ingresos entre dos fechas",
+        "parameters": [
+          {
+            "name": "desde",
+            "in": "query",
+            "description": "Fecha de inicio (YYYY-MM-DD)",
+            "type": "string"
+          },
+          {
+            "name": "hasta",
+            "in": "query",
+            "description": "Fecha de fin (YYYY-MM-DD)",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Evolución de ingresos obtenida correctamente",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "mes": {
+                    "type": "string",
+                    "example": "2025-01"
+                  },
+                  "total": {
+                    "type": "number",
+                    "example": 15000
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener los ingresos en evolucion",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "mensaje": {
+                    "type": "string",
+                    "example": "Error al obtener los ingresos en evolucion"
+                  }
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/reservas": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Listado de reservas",
+        "description": "Devuelve un listado paginado de reservas, con filtros opcionales por estado y búsqueda por cliente",
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "query",
+            "description": "Filtrar por estado de la reserva",
+            "type": "string"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Buscar por nombre completo o DNI del cliente",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Número de página (por defecto 1)",
+            "type": "integer"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Cantidad de resultados por página (por defecto 10)",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reservas obtenidas correctamente",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "total": {
+                  "type": "number",
+                  "example": 42
+                },
+                "pagina": {
+                  "type": "number",
+                  "example": 1
+                },
+                "totalPaginas": {
+                  "type": "number",
+                  "example": 5
+                },
+                "reservas": {
+                  "type": "array",
+                  "example": [],
+                  "items": {}
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al obtener las Reservas",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "mensaje": {
+                  "type": "string",
+                  "example": "Error al obtener las Reservas"
+                }
+              },
+              "xml": {
+                "name": "main"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/exportar/pdf": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Exportar reporte del dashboard en PDF",
+        "description": "Genera un PDF con el resumen de reservas, ingresos y gráficos (barras, torta y línea) para el año indicado",
+        "produces": [
+          "application/pdf"
+        ],
+        "parameters": [
+          {
+            "name": "anio",
+            "in": "query",
+            "description": "Año a consultar (por defecto, el año actual)",
+            "required": false,
+            "type": "integer",
+            "example": 2026
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF generado correctamente",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al generar el PDF"
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/exportar/excel": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Exportar reporte del dashboard en Excel",
+        "description": "Genera un archivo Excel con el resumen de reservas, ingresos por mes, reservas por estado y evolución de ingresos, incluyendo gráficos embebidos, para el año indicado",
+        "produces": [
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ],
+        "parameters": [
+          {
+            "name": "anio",
+            "in": "query",
+            "description": "Año a consultar (por defecto, el año actual)",
+            "required": false,
+            "type": "integer",
+            "example": 2026
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Excel generado correctamente",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Error al generar el Excel"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Usuario": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "correoElectronico": {
+          "type": "string",
+          "example": "guada@example.com"
+        },
+        "ultimoAcceso": {
+          "type": "string",
+          "example": "2026-07-09T14:30:00.000Z"
+        },
+        "eliminado": {
+          "type": "boolean",
+          "example": false
+        },
+        "googleId": {},
+        "createdAt": {
+          "type": "string",
+          "example": "2026-01-15T10:00:00.000Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "example": "2026-07-09T14:30:00.000Z"
+        }
+      }
+    },
+    "createUsuario": {
+      "type": "object",
+      "properties": {
+        "correoElectronico": {
+          "type": "string",
+          "example": "guada@example.com"
+        },
+        "clave": {
+          "type": "string",
+          "example": "MiPassword123!"
+        },
+        "activo": {
+          "type": "boolean",
+          "example": true
+        },
+        "legajo": {
+          "type": "string",
+          "example": "JP001"
+        },
+        "sede": {
+          "type": "string",
+          "example": "sucursal"
+        },
+        "esGerente": {
+          "type": "boolean",
+          "example": false
+        },
+        "dni": {
+          "type": "string",
+          "example": "11111111"
+        },
+        "nombreCompleto": {
+          "type": "string",
+          "example": "Guadalupe Veliz"
+        },
+        "telefono": {
+          "type": "string",
+          "example": "3881111111"
+        }
+      }
+    },
+    "updateUsuario": {
+      "type": "object",
+      "properties": {
+        "correoElectronico": {
+          "type": "string",
+          "example": "guada.nuevo@example.com"
+        },
+        "clave": {
+          "type": "string",
+          "example": "NuevaPassword456!"
+        }
+      }
+    },
+    "Cliente": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "usuarioId": {
+          "type": "number",
+          "example": 1
+        },
+        "dni": {
+          "type": "string",
+          "example": "30123456"
+        },
+        "nombreCompleto": {
+          "type": "string",
+          "example": "Guadalupe Veliz"
+        },
+        "telefono": {
+          "type": "string",
+          "example": "3884123456"
+        },
+        "eliminado": {
+          "type": "boolean",
+          "example": false
+        },
+        "createdAt": {
+          "type": "string",
+          "example": "2026-01-15T10:00:00.000Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "example": "2026-01-15T10:00:00.000Z"
+        }
+      }
+    },
+    "createCliente": {
+      "type": "object",
+      "properties": {
+        "usuarioId": {
+          "type": "number",
+          "example": 1
+        },
+        "dni": {
+          "type": "string",
+          "example": "30123456"
+        },
+        "nombreCompleto": {
+          "type": "string",
+          "example": "Guadalupe Veliz"
+        },
+        "telefono": {
+          "type": "string",
+          "example": "3884123456"
+        }
+      }
+    },
+    "updateCliente": {
+      "type": "object",
+      "properties": {
+        "nombreCompleto": {
+          "type": "string",
+          "example": "Guadalupe Virginia Veliz "
+        },
+        "telefono": {
+          "type": "string",
+          "example": "3884987654"
+        },
+        "dni": {
+          "type": "string",
+          "example": "30123999"
+        }
+      }
+    },
+    "Empleado": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "usuarioId": {
+          "type": "number",
+          "example": 2
+        },
+        "legajo": {
+          "type": "string",
+          "example": "EMP-001"
+        },
+        "sede": {
+          "type": "string",
+          "example": "central"
+        },
+        "esGerente": {
+          "type": "boolean",
+          "example": false
+        },
+        "eliminado": {
+          "type": "boolean",
+          "example": false
+        },
+        "createdAt": {
+          "type": "string",
+          "example": "2026-01-15T10:00:00.000Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "example": "2026-01-15T10:00:00.000Z"
+        }
+      }
+    },
+    "createEmpleado": {
+      "type": "object",
+      "properties": {
+        "usuarioId": {
+          "type": "number",
+          "example": 2
+        },
+        "legajo": {
+          "type": "string",
+          "example": "EMP-001"
+        },
+        "sede": {
+          "type": "string",
+          "example": "central"
+        },
+        "esGerente": {
+          "type": "boolean",
+          "example": false
+        }
+      }
+    },
+    "updateEmpleado": {
+      "type": "object",
+      "properties": {
+        "legajo": {
+          "type": "string",
+          "example": "EMP-003"
+        },
+        "sede": {
+          "type": "string",
+          "example": "sucursal"
+        },
+        "esGerente": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "PaqueteTuristico": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "nombre": {
+          "type": "string",
+          "example": "Escapada a la Puna"
+        },
+        "ubicacion": {
+          "type": "string",
+          "example": "Jujuy, Argentina"
+        },
+        "descripcion": {
+          "type": "string",
+          "example": "Recorrido de 3 días por salinas y pueblos andinos"
+        },
+        "precioBase": {
+          "type": "number",
+          "example": 45000
+        },
+        "duracionEnDias": {
+          "type": "string",
+          "example": "3"
+        },
+        "imagen": {
+          "type": "string",
+          "example": "puna.jpg"
+        },
+        "estado": {
+          "type": "string",
+          "example": "disponible"
+        },
+        "eliminado": {
+          "type": "boolean",
+          "example": false
+        },
+        "createdAt": {
+          "type": "string",
+          "example": "2026-01-15T10:00:00.000Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "example": "2026-01-15T10:00:00.000Z"
+        }
+      }
+    },
+    "createPaqueteTuristico": {
+      "type": "object",
+      "properties": {
+        "nombre": {
+          "type": "string",
+          "example": "Escapada a la Puna"
+        },
+        "ubicacion": {
+          "type": "string",
+          "example": "Jujuy, Argentina"
+        },
+        "descripcion": {
+          "type": "string",
+          "example": "Recorrido de 3 días por salinas y pueblos andinos"
+        },
+        "precioBase": {
+          "type": "number",
+          "example": 45000
+        },
+        "duracionEnDias": {
+          "type": "string",
+          "example": "3"
+        },
+        "imagen": {
+          "type": "string",
+          "example": "puna.jpg"
+        }
+      }
+    },
+    "updatePaqueteTuristico": {
+      "type": "object",
+      "properties": {
+        "nombre": {
+          "type": "string",
+          "example": "Escapada a la Puna - Editado"
+        },
+        "ubicacion": {
+          "type": "string",
+          "example": "Jujuy"
+        },
+        "descripcion": {
+          "type": "string",
+          "example": "Recorrido de 7 días por salinas y pueblos andinos"
+        },
+        "precioBase": {
+          "type": "number",
+          "example": 50000
+        },
+        "duracionEnDias": {
+          "type": "string",
+          "example": "7"
+        },
+        "estado": {
+          "type": "string",
+          "example": "no_disponible"
+        },
+        "imagen": {
+          "type": "string",
+          "example": "puna3.jpg"
+        }
+      }
+    },
+    "Reserva": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "clienteId": {
+          "type": "number",
+          "example": 1
+        },
+        "vacanteId": {
+          "type": "number",
+          "example": 1
+        },
+        "fechaDeReservacion": {
+          "type": "string",
+          "example": "2026-07-20"
+        },
+        "cantidadDePersonas": {
+          "type": "number",
+          "example": 2
+        },
+        "montoPagado": {
+          "type": "number",
+          "example": 20000
+        },
+        "estado": {
+          "type": "string",
+          "example": "confirmada"
+        },
+        "eliminado": {
+          "type": "boolean",
+          "example": false
+        },
+        "createdAt": {
+          "type": "string",
+          "example": "2026-07-09T14:30:00.000Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "example": "2026-07-09T14:30:00.000Z"
+        }
+      }
+    },
+    "createReserva": {
+      "type": "object",
+      "properties": {
+        "clienteId": {
+          "type": "number",
+          "example": 1
+        },
+        "vacanteId": {
+          "type": "number",
+          "example": 1
+        },
+        "fechaDeReservacion": {
+          "type": "string",
+          "example": "2026-07-20"
+        },
+        "cantidadDePersonas": {
+          "type": "number",
+          "example": 2
+        }
+      }
+    },
+    "updateReserva": {
+      "type": "object",
+      "properties": {
+        "clienteId": {
+          "type": "number",
+          "example": 1
+        },
+        "vacanteId": {
+          "type": "number",
+          "example": 1
+        },
+        "cantidadDePersonas": {
+          "type": "number",
+          "example": 3
+        },
+        "fechaDeReservacion": {
+          "type": "string",
+          "example": "2026-08-15"
+        }
+      }
+    },
+    "Pago": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "reservaId": {
+          "type": "number",
+          "example": 1
+        },
+        "fecha": {
+          "type": "string",
+          "example": "2026-07-09T14:30:00.000Z"
+        },
+        "monto": {
+          "type": "number",
+          "example": 20000
+        },
+        "metodoPago": {
+          "type": "string",
+          "example": "TARJETA_CREDITO"
+        },
+        "estado": {
+          "type": "string",
+          "example": "pagado"
+        },
+        "eliminado": {
+          "type": "boolean",
+          "example": false
+        },
+        "createdAt": {
+          "type": "string",
+          "example": "2026-07-09T14:30:00.000Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "example": "2026-07-09T14:30:00.000Z"
+        }
+      }
+    },
+    "createPago": {
+      "type": "object",
+      "properties": {
+        "reservaId": {
+          "type": "number",
+          "example": 2
+        },
+        "monto": {
+          "type": "number",
+          "example": 20000
+        },
+        "metodoPago": {
+          "type": "string",
+          "example": "TARJETA_CREDITO"
+        }
+      }
+    },
+    "updatePago": {
+      "type": "object",
+      "properties": {
+        "monto": {
+          "type": "number",
+          "example": 25000
+        },
+        "metodoPago": {
+          "type": "string",
+          "example": "TRANSFERENCIA"
+        }
+      }
+    },
+    "Comprobante": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "reservaId": {
+          "type": "number",
+          "example": 1
+        },
+        "numero": {
+          "type": "string",
+          "example": "COMP-2026-0001"
+        },
+        "fechaDeEmision": {
+          "type": "string",
+          "example": "2026-07-09T14:30:00.000Z"
+        },
+        "tipo": {
+          "type": "string",
+          "example": "reserva"
+        },
+        "eliminado": {
+          "type": "boolean",
+          "example": false
+        },
+        "createdAt": {
+          "type": "string",
+          "example": "2026-07-09T14:30:00.000Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "example": "2026-07-09T14:30:00.000Z"
+        }
+      }
+    },
+    "createComprobante": {
+      "type": "object",
+      "properties": {
+        "numero": {
+          "type": "string",
+          "example": "COMP-2026-0001"
+        },
+        "fechaDeEmision": {
+          "type": "string",
+          "example": "2026-07-09T14:30:00.000Z"
+        },
+        "tipo": {
+          "type": "string",
+          "example": "reserva"
+        },
+        "reservaId": {
+          "type": "number",
+          "example": 1
+        }
+      }
+    },
+    "updateComprobante": {
+      "type": "object",
+      "properties": {
+        "numero": {
+          "type": "string",
+          "example": "COMP-2026-0001-REV"
+        },
+        "tipo": {
+          "type": "string",
+          "example": "cancelacion"
+        }
+      }
+    },
+    "Vacante": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "paqueteTuristicoId": {
+          "type": "number",
+          "example": 1
+        },
+        "fechaDeSalida": {
+          "type": "string",
+          "example": "2026-08-15"
+        },
+        "cupoTotal": {
+          "type": "number",
+          "example": 20
+        },
+        "cupoDisponible": {
+          "type": "number",
+          "example": 12
+        },
+        "estado": {
+          "type": "string",
+          "example": "disponible"
+        },
+        "eliminado": {
+          "type": "boolean",
+          "example": false
+        },
+        "createdAt": {
+          "type": "string",
+          "example": "2026-01-15T10:00:00.000Z"
+        },
+        "updatedAt": {
+          "type": "string",
+          "example": "2026-01-15T10:00:00.000Z"
+        }
+      }
+    },
+    "createVacante": {
+      "type": "object",
+      "properties": {
+        "paqueteTuristicoId": {
+          "type": "number",
+          "example": 1
+        },
+        "fechaDeSalida": {
+          "type": "string",
+          "example": "2026-08-15"
+        },
+        "cupoTotal": {
+          "type": "number",
+          "example": 20
+        }
+      }
+    },
+    "updateVacante": {
+      "type": "object",
+      "properties": {
+        "cupoTotal": {
+          "type": "number",
+          "example": 8
+        },
+        "fechaDeSalida": {
+          "type": "string",
+          "example": "2026-08-15"
+        },
+        "estado": {
+          "type": "string",
+          "example": "no_disponible"
+        }
+      }
+    },
+    "googleAuthCredential": {
+      "type": "object",
+      "properties": {
+        "credential": {
+          "type": "string",
+          "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6..."
+        }
+      }
+    },
+    "googleSignupResponse": {
+      "type": "object",
+      "properties": {
+        "tempToken": {
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+        },
+        "email": {
+          "type": "string",
+          "example": "guada@example.com"
+        },
+        "name": {
+          "type": "string",
+          "example": "Guadalupe Veliz"
+        },
+        "picture": {
+          "type": "string",
+          "example": "https://lh3.googleusercontent.com/a/foto.jpg"
+        }
+      }
+    },
+    "googleSigninResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+        },
+        "correo": {
+          "type": "string",
+          "example": "guada@example.com"
+        },
+        "rol": {
+          "type": "string",
+          "example": "Cliente"
+        },
+        "clienteId": {
+          "type": "number",
+          "example": 1
+        },
+        "empleadoId": {}
+      }
+    }
+  }
 }

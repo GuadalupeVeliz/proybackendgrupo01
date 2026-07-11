@@ -30,7 +30,6 @@ dashboardController.getReservasPorEstado = async (req, res) => {
     const reservasPorEstado = await dashboardService.getReservasPorEstado();
     res.status(200).json(reservasPorEstado);
   } catch (error) {
-
     console.error("Error en getReservasPorEstado:", error);
     res.status(500).json({ mensaje: "Error al obtener reservas por estado" });
   }

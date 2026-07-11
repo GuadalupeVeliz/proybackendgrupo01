@@ -40,14 +40,12 @@ const PaqueteTuristico = sequelize.define(
       },
     },
     duracionEnDias: {
-      type: DataTypes.ENUM,
-      values: ['3', '7'],
-      defaultValue: '3',
+      type: DataTypes.INTEGER,
       allowNull: false,
       validate: {
-        isIn: {
-          args: [['3', '7']],
-          msg: 'La duración debe ser 3 o 7 días.',
+        min: {
+          args: [1],
+          msg: 'La duración mínima es de 1 día.',
         },
       },
     },
