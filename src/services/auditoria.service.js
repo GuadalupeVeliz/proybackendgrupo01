@@ -81,7 +81,13 @@ auditoriaService.buscarAuditorias = async (filtros) => {
             [Op.lte]: fechaHasta
         };
     }
-    return await Auditoria.findAll({ where });
+    return await Auditoria.findAll({
+        where,
+        order: [
+            ['createdAt', 'DESC'],
+            ['id', 'DESC']
+        ]
+    });
 };
 
 
