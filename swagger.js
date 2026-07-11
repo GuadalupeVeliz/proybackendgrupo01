@@ -12,7 +12,7 @@ const doc = {
   },
   host: "proybackendgrupo01-ecl4.onrender.com",
   basePath: "/",
-  schemes: ["https", "http"],
+  schemes: ["http", "https"],
   tags: [
     { name: "Auth", description: "Login, registro y autenticación con Google" },
     {
