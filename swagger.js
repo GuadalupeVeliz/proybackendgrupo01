@@ -13,6 +13,15 @@ const doc = {
   host: "proybackendgrupo01-ecl4.onrender.com",
   basePath: "/",
   schemes: ["http", "https"],
+  securityDefinitions: {
+    bearerAuth: {
+      type: "apiKey",
+      name: "Authorization",
+      in: "header",
+      scheme: "bearer",
+      bearerFormat: "JWT"
+    }
+  },
   tags: [
     { name: "Auth", description: "Login, registro y autenticación con Google" },
     {
