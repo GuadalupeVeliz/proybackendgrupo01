@@ -101,7 +101,7 @@ dashboardService.getIngresosEvolucion = async (desde, hasta) => {
 
   const resultado = await Pago.findAll({
     attributes: [
-      [fn("TO_CHAR", col("fecha"), "YYYY-MM"), "mes"],
+      [fn("TO_CHAR", col("fecha"), "YYYY-MM"), "periodo"],
       [fn("SUM", col("monto")), "total"],
     ],
     where,

@@ -34,6 +34,7 @@ authMiddleware.verifyUserToken = async (req, res, next) => {
 
     next();
   } catch (error) {
+    console.error('Error en verifyUserToken()', error.message);
     return res.status(403).json({ message: 'Token inválido o expirado.', error: error.message });
   }
 };

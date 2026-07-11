@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/database.config');
+const fechaHoyArgentina = require('../utils/getFechaArg');
 
 const Reserva = sequelize.define(
   'Reserva',
@@ -9,7 +10,7 @@ const Reserva = sequelize.define(
       allowNull: false,
       validate: {
         isAfter: {
-          args: [new Date().toISOString().split('T')[0]],
+          args: [fechaHoyArgentina.getFechaConHora()],
           msg: 'La fecha de reservación debe ser posterior a la fecha actual.',
         },
       },
@@ -59,6 +60,7 @@ const Reserva = sequelize.define(
   },
   {
     tableName: 'reservas',
+    timezone: '-03:00',
     timestamps: true,
   }
 );

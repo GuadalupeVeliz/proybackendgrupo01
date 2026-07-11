@@ -4,8 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node --env-file-if-exists=.env server.js",
+    "start": "node swagger.js && node --env-file-if-exists=.env server.js",
     "dev": "node --env-file=.env --watch server.js",
+    "swagger": "node swagger.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -17,10 +18,12 @@
     "axios": "^1.18.1",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
+    "date-fns-tz": "^3.2.0",
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "google-auth-library": "^10.9.0",
     "jsonwebtoken": "^9.0.3",
+    "mercadopago": "^3.2.0",
     "multer": "^2.2.0",
     "node-cron": "^4.6.0",
     "nodemailer": "^9.0.1",

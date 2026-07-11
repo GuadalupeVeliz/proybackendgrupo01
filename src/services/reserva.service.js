@@ -2,6 +2,7 @@ const { Vacante, Reserva, Cliente, Empleado, PaqueteTuristico, Comprobante } = r
 const vacanteService = require('./vacante.service');
 const comprobanteService = require('./comprobante.service');
 const { Op } = require('sequelize');
+const pagoService = require('./pago.service');
 
 const reservaService = {};
 
@@ -49,6 +50,10 @@ reservaService.addReserva = async (data, usuario) => {
 
   if (data.cantidadDePersonas <= 0) {
     throw new Error('La cantidad de personas debe ser mayor a 0.');
+  }
+
+  if (data.cantidadDePersonas > existingVacante.cupoDisponible) {
+    throw new Error('La cantidad de personas excede el cupo disponible.');
   }
 
   const fechaReservacion = new Date(data.fechaDeReservacion);
@@ -191,7 +196,8 @@ reservaService.findReservasByClienteId = async (id) => {
   });
 };
 
-reservaService.checkoutReserva = async (id, data, usuario) => {
+reservaService.checkoutReserva = async (id) => {
+// reservaService.checkoutReserva = async (id, data, usuario) => {
   const reserva = await Reserva.findOne({
     where: { id, eliminado: false },
     include: {
@@ -201,41 +207,12 @@ reservaService.checkoutReserva = async (id, data, usuario) => {
     },
   });
 
-  if (!reserva) {
-    throw new Error('Reserva no encontrada o dada de baja.');
-  }
+  if (!reserva) throw new Error('Reserva no encontrada o dada de baja.');
+  if (reserva.estado === 'confirmada') throw new Error('La reserva ya está confirmada.');
+  if (reserva.estado === 'cancelada') throw new Error('No se puede pagar una reserva cancelada.');
 
-  assertClienteOwnsReserva(reserva, usuario);
-
-  if (reserva.estado === 'confirmada') {
-    throw new Error('La reserva ya está confirmada.');
-  }
-
-  if (reserva.estado === 'cancelada') {
-    throw new Error('No se puede confirmar una reserva cancelada.');
-  }
-
-  if (!data.montoPagado) {
-    throw new Error('Debe ingresar el monto a pagar para confirmar.');
-  }
-
-  const precioUnitario = parseFloat(reserva.vacante.paqueteTuristico.precioBase);
-  const montoTotal = precioUnitario * reserva.cantidadDePersonas;
-  const montoPagado = parseFloat(data.montoPagado);
-
-  if (Number.isNaN(montoPagado)) {
-    throw new Error('El monto ingresado no es válido.');
-  }
-
-  if (montoPagado < montoTotal) {
-    throw new Error(`Monto insuficiente. Total: $${montoTotal.toFixed(2)}.`);
-  }
-
-  await reserva.update({ estado: 'confirmada', montoPagado });
-
-  await comprobanteService.addComprobanteReserva(reserva.id);
-
-  return reserva;
+  const initPoint = await pagoService.iniciarPagoMP(reserva);
+  return { initPoint };
 };
 
 reservaService.cancelReserva = async (id, usuario) => {
@@ -254,7 +231,7 @@ reservaService.cancelReserva = async (id, usuario) => {
 
   await comprobanteService.addComprobanteCancelacion(reserva.id);
 
-  return reserva;
+  return { reserva: reserva, id: reserva.id };
 };
 
 reservaService.cancelarReservasVencidas = async () => {

@@ -22,12 +22,19 @@ const Pago = sequelize.define(
     },
     metodoPago: {
       type: DataTypes.ENUM,
-      values: ['EFECTIVO', 'TARJETA_CREDITO', 'TARJETA_DEBITO', 'TRANSFERENCIA'],
+      values: ['EFECTIVO', 'TARJETA_CREDITO', 'TARJETA_DEBITO', 'TRANSFERENCIA', 'MERCADO_PAGO'],
       allowNull: false,
+    },
+    mpPaymentId: {
+      type: DataTypes.STRING,
+      unique: true
+    },
+    mpPreferenceId: {
+      type: DataTypes.STRING
     },
     estado: {
       type: DataTypes.ENUM,
-      values: ['pagado', 'pendiente', 'cancelado'],
+      values: ['pagado', 'pendiente', 'cancelado', 'rechazado'],
       defaultValue: 'pendiente',
       allowNull: false,
     },
@@ -38,8 +45,7 @@ const Pago = sequelize.define(
     },
   },
   {
-    tableName: 'pagos',
-    timestamps: true,
+    tableName: 'pagos'
   },
 );
 

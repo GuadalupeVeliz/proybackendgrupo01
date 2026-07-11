@@ -36,7 +36,7 @@ pdfService.buildComprobantePDF = (comprobante, writeStream) => {
     doc.text(
       `Destino: ${comprobante.reserva.vacante.paqueteTuristico.destino}`
     );
-    doc.text(`Plazas Reservadas: ${comprobante.reserva.cantidadPersonas}`);
+    doc.text(`Plazas Reservadas: ${comprobante.reserva.cantidadDePersonas}`);
   }
 
   doc.text(
