@@ -28,14 +28,14 @@ reservaController.getReservas = async (req, res) => {
   try {
     const reservas = await reservaService.findReservasForUser(req.usuarioLogged);
     await auditoriaService.registrarCreate(req,{
-      accion: 'Consulta', 
+      accion: 'Consultar', 
       modelo: 'Reserva',
       resultado: 'OK'
     })
     return res.status(200).json({ success: true, data: reservas });
   } catch (error) {
     await auditoriaService.registrarCreate(req,{
-      accion: 'Consulta', 
+      accion: 'Consultar', 
       modelo: 'Reserva',
       resultado: 'Error',
       detalleError: error.message
@@ -48,7 +48,7 @@ reservaController.getReservaById = async (req, res) => {
   try {
     const reserva = await reservaService.findReservaByIdForUser(req.params.id, req.usuarioLogged);
     await auditoriaService.registrarCreate(req,{
-      accion: 'Consulta', 
+      accion: 'Consultar', 
       modelo: 'Reserva',
       resultado: 'OK',
       entidadId: req.params.id
@@ -56,7 +56,7 @@ reservaController.getReservaById = async (req, res) => {
     return res.status(200).json({ success: true, data: reserva });
   } catch (error) {
     await auditoriaService.registrarCreate(req,{
-      accion: 'Consulta', 
+      accion: 'Consultar', 
       modelo: 'Reserva',
       resultado: 'OK',
       entidadId: req.params.id,
@@ -120,7 +120,7 @@ reservaController.getReservasByClienteId = async (req, res) => {
       : req.params.clienteId;
     const reservas = await reservaService.findReservasByClienteId(clienteId);
     await auditoriaService.registrarCreate(req,{
-      accion: 'Consulta', 
+      accion: 'Consultar', 
       modelo: 'Reserva',
       resultado: 'OK'
     })
@@ -130,7 +130,7 @@ reservaController.getReservasByClienteId = async (req, res) => {
     return res.status(200).json({ success: true, data: reservas });
   } catch (error) {
     await auditoriaService.registrarCreate(req, {
-      accion: 'Consulta', 
+      accion: 'Consultar', 
       modelo: 'Reserva',
       resultado: 'Error',
       detalleError: error.message

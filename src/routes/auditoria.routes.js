@@ -8,5 +8,6 @@ auditoriaRoutes.use(authMiddleware.verifyUserToken);
 auditoriaRoutes.use(authMiddleware.authorizeByRole(['Gerente']));
 
 auditoriaRoutes.get('/', auditoriaController.getAuditorias);
+auditoriaRoutes.get('/filtros',auditoriaController.getFiltros);
 
 module.exports = auditoriaRoutes;
