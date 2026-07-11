@@ -17,12 +17,12 @@ mercadoPagoService.createPreference = async ({ paquete, cantidad, reservaId }) =
       }],
       external_reference: String(reservaId),
       back_urls: {
-        success: `${frontendUrl}/pago/exitoso`,
-        failure: `${frontendUrl}/pago/rechazado`,
-        pending: `${frontendUrl}/pago/pendiente`,
+        success: 'https://proyfrontendgrupo01-6r0q.onrender.com/pago/exitoso',
+        failure: 'https://proyfrontendgrupo01-6r0q.onrender.com/pago/rechazado',
+        pending: 'https://proyfrontendgrupo01-6r0q.onrender.com/pago/pendiente'
       },
       auto_return: 'approved',
-      notification_url: `${backendUrl}/pagos/webhook`,
+      notification_url: 'https://proybackendgrupo01-ecl4.onrender.com/api/v1/pagos/webhook',
     },
   });
 
