@@ -105,7 +105,7 @@ vacanteService.decreaseCupoDisponible = async (id, quantity) => {
   return await vacante.update({ cupoDisponible: vacante.cupoDisponible - quantity });
 };
 
-vacanteService.restoreCupoDisponible = async (id, quantity) => {
+vacanteService.restoreCupoDisponible = async (id, quantity, transaction) => {
   const vacante = await vacanteService.findVacanteById(id);
   const newCupos = vacante.cupoDisponible + quantity;
   if (newCupos > vacante.cupoTotal) {
@@ -113,7 +113,7 @@ vacanteService.restoreCupoDisponible = async (id, quantity) => {
       `No se pueden restaurar ${quantity} cupos porque superarías el cupo total (${vacante.cupoTotal}).`,
     );
   }
-  return await vacante.update({ cupoDisponible: newCupos });
+  return await vacante.update({ cupoDisponible: newCupos }, { transaction });
 };
 
 vacanteService.actualizarCuposPorReserva = async (

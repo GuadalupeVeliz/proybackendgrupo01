@@ -2,6 +2,7 @@ const { Pago, Reserva, Comprobante } = require('../models');
 const mercadoPagoService = require('./mercado-pago.service');
 const sequelize = require('../../config/database.config');
 const comprobanteService = require('./comprobante.service');
+const vacanteService = require('./vacante.service');
 
 const pagoService = {};
 
@@ -131,11 +132,11 @@ pagoService.procesarWebhook = async (paymentId) => {
       transaction: t,
     });
 
-    if (!pago) { 
+    if (!pago) {
       await t.rollback(); return;
     }
 
-    if (pago.estado === 'pagado') { 
+    if (pago.estado === 'pagado') {
       await t.commit(); return;
     }
 
@@ -155,6 +156,15 @@ pagoService.procesarWebhook = async (paymentId) => {
     } else if (['rejected', 'cancelled'].includes(pagoMP.status)) {
       pago.estado = 'rechazado';
       await pago.save({ transaction: t });
+
+      const reserva = await Reserva.findByPk(reservaId, { transaction: t });
+      await vacanteService.restoreCupoDisponible(
+        reserva.vacanteId,
+        reserva.cantidadDePersonas,
+        t,
+      );
+      await reserva.update({ estado: 'cancelada' }, { transaction: t });
+
       await t.commit();
 
     } else {

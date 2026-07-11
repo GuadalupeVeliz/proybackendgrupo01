@@ -33,9 +33,9 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      'https://excluded-clay-enclosure-specialists.trycloudflare.com'
-      // `https://proyfrontendgrupo01-6r0q.onrender.com`,
-      // 'http://localhost:4200',
+      'https://excluded-clay-enclosure-specialists.trycloudflare.com',
+      `https://proyfrontendgrupo01-6r0q.onrender.com`,
+      'http://localhost:4200',
     ]
   }),
 );

@@ -22,6 +22,7 @@ const sequelize = new Sequelize(BD_NOMBRE, BD_USUARIO, BD_CONTRASEÑA, {
   host: BD_HOST,
   dialect: "postgres",
   logging: false,
+  timezone: '-03:00', // Argentina timezone
 });
 
 sequelize

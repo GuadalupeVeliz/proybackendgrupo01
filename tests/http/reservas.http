@@ -41,7 +41,7 @@ Authorization: Bearer {{loggedRecepcionista.data.token}}
 # Authorization: Bearer {{loggedCliente.data.token}}
 
 {
-    "cantidadPersonas": 3
+    "cantidadDePersonas": 3
 }
 
 ### DELETE Reserva (Gerente y Recepcionista)

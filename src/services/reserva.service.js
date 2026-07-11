@@ -52,6 +52,10 @@ reservaService.addReserva = async (data, usuario) => {
     throw new Error('La cantidad de personas debe ser mayor a 0.');
   }
 
+  if (data.cantidadDePersonas > existingVacante.cupoDisponible) {
+    throw new Error('La cantidad de personas excede el cupo disponible.');
+  }
+
   const fechaReservacion = new Date(data.fechaDeReservacion);
   const fechaSalida = new Date(existingVacante.fechaDeSalida);
 
