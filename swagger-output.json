@@ -5,7 +5,7 @@
     "description": "Documentación de la API para el sistema de gestión de reservas turísticas Turismo del Norte..\nIntegrantes del grupo:\n- Barboza, Nicolás Gonzalo\n- Lamas, Juan Eduardo\n- Véliz, Guadalupe Virginia",
     "version": "1.0.0"
   },
-  "host": "https://proybackendgrupo01-ecl4.onrender.com",
+  "host": "proybackendgrupo01-ecl4.onrender.com",
   "basePath": "/",
   "tags": [
     {
