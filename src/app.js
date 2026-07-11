@@ -31,8 +31,12 @@ const app = express();
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use(express.json());
 app.use(
-  cors({ // 'http://172.20.0.3:4200' ||
-    origin: [`https://proyfrontendgrupo01-6r0q.onrender.com`, 'http://localhost:4200']
+  cors({
+    origin: [
+      'https://excluded-clay-enclosure-specialists.trycloudflare.com'
+      // `https://proyfrontendgrupo01-6r0q.onrender.com`,
+      // 'http://localhost:4200',
+    ]
   }),
 );
 

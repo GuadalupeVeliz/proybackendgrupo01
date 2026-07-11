@@ -142,7 +142,7 @@ reservaService.findReservasByClienteId = async (id) => {
   });
 };
 
-reservaService.checkoutReserva = async (id, data) => {
+reservaService.checkoutReserva = async (id) => {
   const reserva = await Reserva.findOne({
     where: { id, eliminado: false },
     include: {
@@ -175,7 +175,7 @@ reservaService.cancelReserva = async (id) => {
 
   await comprobanteService.addComprobanteCancelacion(reserva.id);
 
-  return reserva;
+  return { reserva: reserva, id: reserva.id };
 };
 
 reservaService.cancelarReservasVencidas = async () => {

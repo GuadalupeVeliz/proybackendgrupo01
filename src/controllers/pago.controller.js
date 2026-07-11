@@ -49,6 +49,7 @@ pagoController.deletePago = async (req, res) => {
 };
 
 pagoController.webhook = async (req, res) => {
+  console.log('Webhook recibido:', JSON.stringify(req.body));
   res.sendStatus(200);
   try {
     const { type, data } = req.body;
