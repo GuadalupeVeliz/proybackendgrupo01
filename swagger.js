@@ -22,6 +22,11 @@ const doc = {
       bearerFormat: "JWT"
     }
   },
+  security: [
+    {
+      bearerAuth: []
+    }
+  ],
   tags: [
     { name: "Auth", description: "Login, registro y autenticación con Google" },
     {
